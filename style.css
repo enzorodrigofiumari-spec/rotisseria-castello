@@ -1,0 +1,268 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f8f9fa;
+  color: #333;
+  padding-bottom: 40px;
+}
+
+.container {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* HEADER COM LOGO */
+.header {
+  background-color: #d9381e;
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-loja {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  background-color: white;
+}
+
+.header h1 { font-size: 1.5rem; margin-bottom: 2px; }
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: bold;
+}
+
+.badge-aberto { background-color: #2e7d32; color: white; }
+.badge-fechado { background-color: #c62828; color: white; }
+
+.btn-admin-topo {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid white;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* CARDS E GRIDS */
+.section { margin-bottom: 30px; }
+.section-title {
+  font-size: 1.3rem;
+  color: #d9381e;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+.subtitle-section { font-size: 0.9rem; color: #666; margin-bottom: 15px; }
+
+.grid-cardapio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.foto-prato {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.card-destaque { border-top: 4px solid #28a745; }
+.card-especial { border-top: 4px solid #ffc107; }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tag-semanal { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+.tag-diario { background: #fff8e1; color: #f57f17; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+.preco-tag { font-weight: bold; font-size: 1.1rem; color: #d9381e; }
+
+.descricao-prato {
+  font-size: 0.88rem;
+  color: #555;
+  margin: 8px 0 12px 0;
+  line-height: 1.4;
+}
+
+.btn-add {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-add:hover { background: #218838; }
+
+/* CARRINHO & CHECKOUT */
+.card-checkout {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.lista-carrinho { margin-bottom: 15px; }
+.item-carrinho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detalhes-item-carrinho {
+  font-size: 0.82rem;
+  color: #555;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
+.totais-carrinho { margin-top: 15px; background: #f9f9f9; padding: 12px; border-radius: 6px; }
+.linha-total { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.total-final { font-weight: bold; font-size: 1.2rem; color: #d9381e; }
+
+.divisor { margin: 20px 0; border: 0; border-top: 1px solid #ddd; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.btn-whatsapp {
+  background-color: #25d366;
+  color: white;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-whatsapp:hover { background-color: #1eb854; }
+
+/* MODAL & CHECKBOXES */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-large { max-width: 700px; }
+.fechar-modal { float: right; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+
+.regras-destaque {
+  background: #e3f2fd;
+  color: #0d47a1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin: 10px 0 15px 0;
+}
+
+.grid-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.grid-checkboxes-admin {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.check-item input { width: auto; }
+.btn-salvar { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }

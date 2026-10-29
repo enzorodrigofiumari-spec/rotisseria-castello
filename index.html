@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotisseria Castello - Cardápio Digital</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- CABEÇALHO COM LOGO -->
+  <header class="header">
+    <div class="container header-content">
+      <div class="brand-box">
+        <img src="img/logo.png" onerror="this.style.display='none'" alt="Logo Rotisseria Castello" class="logo-loja">
+        <div>
+          <h1>Rotisseria Castello</h1>
+          <p>🕒 Segunda a Sábado: 11h às 14h</p>
+          <span id="status-loja" class="badge badge-aberto">🟢 Aberto para Pedidos</span>
+        </div>
+      </div>
+      <button id="btn-admin" class="btn-admin-topo">⚙️ Painel do Dono</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- DESTAQUES DA CASA -->
+    <section class="section">
+      <h2 class="section-title">🔥 Destaques da Casa</h2>
+      <div class="grid-cardapio">
+        
+        <!-- SUGESTÃO DO CHEF -->
+        <div class="card card-destaque">
+          <img id="img-sugestao" src="img/sugestao.jpg" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" alt="Sugestão do Chef" class="foto-prato">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="tag-semanal">Fixo da Semana</span>
+              <span class="preco-tag">R$ 23,00</span>
+            </div>
+            <h3>👨‍🍳 Sugestão do Chef</h3>
+            <p id="desc-sugestao" class="descricao-prato">Carregando...</p>
+            <button onclick="adicionarDireto('Sugestão do Chef', 23.00)" class="btn-add">+ Adicionar (R$ 23,00)</button>
+          </div>
+        </div>
+
+        <!-- ESPECIAL DO DIA -->
+        <div class="card card-especial">
+          <img id="img-especial" src="img/especial.jpg" onerror="this.src='https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400'" alt="Especial do Dia" class="foto-prato">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="tag-diario">Especial de Hoje</span>
+              <span class="preco-tag">R$ 33,00</span>
+            </div>
+            <h3>⭐ Especial do Dia</h3>
+            <p id="desc-especial" class="descricao-prato">Carregando...</p>
+            <button onclick="adicionarDireto('Especial do Dia', 33.00)" class="btn-add">+ Adicionar (R$ 33,00)</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MARMITAS TRADICIONAIS -->
+    <section class="section">
+      <h2 class="section-title">🍱 Marmitas da Casa (Monte a Sua)</h2>
+      <p class="subtitle-section">Selecione o tamanho ideal e escolha suas carnes, acompanhamentos e salada do dia:</p>
+      
+      <div class="grid-cardapio" id="container-marmitas">
+        <!-- Marmitas geradas via JS -->
+      </div>
+    </section>
+
+    <!-- CARRINHO E CHECKOUT -->
+    <section class="section card-checkout">
+      <h2 class="section-title">🛒 Seu Pedido</h2>
+      
+      <div id="itens-carrinho" class="lista-carrinho">
+        <p class="carrinho-vazio">Seu carrinho está vazio. Escolha um prato acima!</p>
+      </div>
+
+      <div class="totais-carrinho">
+        <div class="linha-total"><span>Subtotal:</span> <span id="txt-subtotal">R$ 0,00</span></div>
+        <div class="linha-total"><span>Taxa de Entrega:</span> <span id="txt-taxa">R$ 0,00</span></div>
+        <div class="linha-total total-final"><span>Total:</span> <span id="txt-total">R$ 0,00</span></div>
+      </div>
+
+      <hr class="divisor">
+
+      <h3 class="sub-titulo">📍 Dados para Entrega</h3>
+      <form id="form-pedido">
+        <div class="form-group">
+          <label for="cliente-nome">Seu Nome *</label>
+          <input type="text" id="cliente-nome" required placeholder="Digite seu nome completo">
+        </div>
+
+        <div class="form-group">
+          <label for="cliente-endereco">Endereço de Entrega (Rua, Nº e Bairro) *</label>
+          <input type="text" id="cliente-endereco" required placeholder="Ex: Rua das Flores, 123 - Centro">
+        </div>
+
+        
+          <div class="form-group">
+          <label for="cliente-bairro">Forma de Entrega / Retirada *</label>
+          <select id="cliente-bairro">
+          <option value="Entrega">Entrega a Domicílio</option>
+          <option value="Retirada">Retirar no Balcão (Grátis)</option>
+          </select>
+          </div>
+
+        <div class="form-group">
+          <label for="cliente-pagamento">Forma de Pagamento *</label>
+          <select id="cliente-pagamento" onchange="trocarPagamento()" required>
+            <option value="Pix">Pix (Chave informada no envio)</option>
+            <option value="Cartão de Débito/Crédito">Cartão na Entrega</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="box-troco" style="display: none;">
+          <label for="cliente-troco">Precisa de troco para quanto?</label>
+          <input type="text" id="cliente-troco" placeholder="Ex: Troco para R$ 50,00">
+        </div>
+
+        <button type="button" onclick="finalizarPedido()" class="btn-whatsapp">
+          📲 Enviar Pedido no WhatsApp
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- MODAL DE MONTAGEM DA MARMITA -->
+  <div id="modal-montar" class="modal">
+    <div class="modal-content">
+      <span class="fechar-modal" onclick="fecharModalMontar()">&times;</span>
+      <h2 id="modal-titulo-marmita">Monte sua Marmita</h2>
+      <p id="modal-regras-marmita" class="regras-destaque"></p>
+
+      <div class="form-group">
+        <label>1. Preferência de Feijão:</label>
+        <div class="grid-checkboxes">
+          <!-- Gerado via JS -->
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>2. Escolha o Arroz / Base:</label>
+        <div id="box-bases-dia" class="grid-checkboxes"></div>
+      </div>
+
+      <div class="form-group">
+        <label id="lbl-carnes">3. Escolha as Carnes:</label>
+        <div id="box-carnes-dia" class="grid-checkboxes"></div>
+      </div>
+
+      <div class="form-group">
+        <label id="lbl-guarnicoes">4. Escolha os Acompanhamentos:</label>
+        <div id="box-guarnicoes-dia" class="grid-checkboxes"></div>
+      </div>
+
+      <div class="form-group">
+        <label>5. Opção de Salada do Dia:</label>
+        <div id="box-salada-dia" class="grid-checkboxes"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="obs-marmita">Observações (opcional):</label>
+        <input type="text" id="obs-marmita" placeholder="Ex: Pouco arroz, sem cebola, etc.">
+      </div>
+
+      <button type="button" onclick="confirmarMontagemMarmita()" class="btn-add">Confirmar e Adicionar ao Carrinho</button>
+    </div>
+  </div>
+
+  <!-- MODAL DO PAINEL DO DONO (ADMIN) -->
+  <div id="modal-admin" class="modal">
+    <div class="modal-content modal-large">
+      <span class="fechar-modal" onclick="fecharAdmin()">&times;</span>
+      <h2>⚙️ Painel do Dono - Configuração do Dia</h2>
+      <p>Gerencie o cardápio e a salada de hoje:</p>
+
+      <form id="form-admin" onsubmit="salvarDadosAdmin(event)">
+        
+        <div class="form-group">
+          <label>Status da Loja:</label>
+          <select id="admin-status">
+            <option value="Aberto">🟢 Aberto para Pedidos</option>
+            <option value="Fechado">🔴 Fechado no momento</option>
+          </select>
+        </div>
+
+        <hr>
+        <h3>🥗 Salada do Dia</h3>
+        <input type="text" id="admin-desc-salada" placeholder="Ex: Alface, Maionese de Batata e Tomate">
+
+        <hr>
+        <h3>👨‍🍳 Sugestão do Chef (R$ 23,00)</h3>
+        <input type="text" id="admin-desc-sugestao" placeholder="Descrição da Sugestão" style="margin-bottom:8px;">
+        <input type="text" id="admin-img-sugestao" placeholder="Caminho da Foto (Ex: img/sugestao.jpg)">
+
+        <hr>
+        <h3>⭐ Especial do Dia (R$ 33,00)</h3>
+        <input type="text" id="admin-desc-especial" placeholder="Descrição do Especial do Dia" style="margin-bottom:8px;">
+        <input type="text" id="admin-img-especial" placeholder="Caminho da Foto (Ex: img/especial.jpg)">
+
+        <hr>
+        <h3>🍚 Bases Disponíveis Hoje:</h3>
+        <div id="admin-box-bases" class="grid-checkboxes-admin"></div>
+
+        <hr>
+        <h3>🥩 Carnes Disponíveis Hoje:</h3>
+        <div id="admin-box-carnes" class="grid-checkboxes-admin"></div>
+
+        <hr>
+        <h3>🥗 Acompanhamentos Disponíveis Hoje:</h3>
+        <div id="admin-box-guarnicoes" class="grid-checkboxes-admin"></div>
+
+        <button type="submit" class="btn-salvar">💾 Salvar e Atualizar Cardápio</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
