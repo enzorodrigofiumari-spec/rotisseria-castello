@@ -1,0 +1,20 @@
+{
+  "short_name": "Castello",
+  "name": "Rotisseria Castello",
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "img/logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#d9381e",
+  "display": "standalone"
+}
