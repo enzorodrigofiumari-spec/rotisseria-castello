@@ -4,35 +4,49 @@ const CONFIG = {
   senhaAdmin: "1234"
 };
 
-// BANCO DE BEBIDAS E REFRIGERANTES
-const BANCO_BEBIDAS = [
-  // LATAS (R$ 5,50)
-  { id: 101, nome: "Coca-Cola Normal Lata", preco: 5.50 },
-  { id: 102, nome: "Coca-Cola Zero Lata", preco: 5.50 },
-  { id: 103, nome: "Guaraná Antarctica Lata", preco: 5.50 },
-  { id: 104, nome: "Guaraná Antarctica Zero Lata", preco: 5.50 },
-
-  // 600ML (R$ 7,50)
-  { id: 105, nome: "Coca-Cola 600ml", preco: 7.50 },
-  { id: 106, nome: "Coca-Cola Zero 600ml", preco: 7.50 },
-  { id: 107, nome: "Guaraná Antarctica 600ml", preco: 7.50 },
-  { id: 108, nome: "Guaraná Antarctica Zero 600ml", preco: 7.50 },
-
-  // H2O (R$ 7,50)
-  { id: 109, nome: "H2O Limão", preco: 7.50 },
-  { id: 110, nome: "H2O Limoneto", preco: 7.50 },
-
-  // GARRAFAS 1,5L E 2L SABORES (R$ 12,00)
-  { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
-  { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
-
-  // COCA 2L (R$ 15,00)
-  { id: 113, nome: "Coca-Cola 2L", preco: 15.00 },
-  { id: 114, nome: "Coca-Cola Zero 2L", preco: 15.00 },
-
-  // ÁGUAS
-  { id: 115, nome: "Água sem Gás", preco: 4.00 },
-  { id: 116, nome: "Água com Gás", preco: 4.50 }
+// BANCO DE BEBIDAS ORGANIZADO POR CATEGORIAS (FORMATO COMPACTO PARA CELULAR)
+const BANCO_BEBIDAS_CATEGORIZADO = [
+  {
+    categoria: "🥤 Refrigerantes Lata (350ml)",
+    itens: [
+      { id: 101, nome: "Coca-Cola Normal Lata", preco: 5.50 },
+      { id: 102, nome: "Coca-Cola Zero Lata", preco: 5.50 },
+      { id: 103, nome: "Guaraná Antarctica Lata", preco: 5.50 },
+      { id: 104, nome: "Guaraná Antarctica Zero Lata", preco: 5.50 }
+    ]
+  },
+  {
+    categoria: "🍾 Refrigerantes 600ml",
+    itens: [
+      { id: 105, nome: "Coca-Cola 600ml", preco: 7.50 },
+      { id: 106, nome: "Coca-Cola Zero 600ml", preco: 7.50 },
+      { id: 107, nome: "Guaraná Antarctica 600ml", preco: 7.50 },
+      { id: 108, nome: "Guaraná Antarctica Zero 600ml", preco: 7.50 }
+    ]
+  },
+  {
+    categoria: "🍋 H2O",
+    itens: [
+      { id: 109, nome: "H2O Limão", preco: 7.50 },
+      { id: 110, nome: "H2O Limoneto", preco: 7.50 }
+    ]
+  },
+  {
+    categoria: "Family / Grande (1,5L e 2L)",
+    itens: [
+      { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
+      { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
+      { id: 113, nome: "Coca-Cola 2L", preco: 15.00 },
+      { id: 114, nome: "Coca-Cola Zero 2L", preco: 15.00 }
+    ]
+  },
+  {
+    categoria: "💧 Águas",
+    itens: [
+      { id: 115, nome: "Água sem Gás", preco: 4.00 },
+      { id: 116, nome: "Água com Gás", preco: 4.50 }
+    ]
+  }
 ];
 
 // LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00)
@@ -194,7 +208,6 @@ function carregarDados() {
   }
 }
 
-// CONFIGURAR OPÇÃO "MARCAR NA CONTA" NO SELECT DE PAGAMENTO
 function configurarOpcaoPagamentoConta() {
   const selectPag = document.getElementById("cliente-pagamento");
   if (selectPag) {
@@ -269,21 +282,46 @@ function renderizarMarmitasCards() {
   });
 }
 
+// CONTROLE DE EXIBIÇÃO DA TELA DE BEBIDAS
+function alternarExibicaoBebidas(querBebida) {
+  const boxBebidas = document.getElementById("box-lista-bebidas");
+  if (!boxBebidas) return;
+
+  if (querBebida) {
+    boxBebidas.style.display = "block";
+  } else {
+    boxBebidas.style.display = "none";
+  }
+}
+
+// RENDERIZAÇÃO AGRUPADA POR CATEGORIA
 function renderizarBebidas() {
   const container = document.getElementById("container-bebidas");
   if (!container) return;
   container.innerHTML = "";
 
-  BANCO_BEBIDAS.forEach(b => {
-    container.innerHTML += `
-      <div class="card-bebida" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
-        <div>
-          <strong>${b.nome}</strong><br>
-          <span style="color:#d9381e; font-weight:bold;">R$ ${b.preco.toFixed(2).replace('.', ',')}</span>
-        </div>
-        <button onclick="adicionarDireto('${b.nome}', ${b.preco})" class="btn-add" style="padding:5px 10px;">+ Adicionar</button>
-      </div>
+  BANCO_BEBIDAS_CATEGORIZADO.forEach(grupo => {
+    let htmlGrupo = `
+      <div style="margin-bottom: 15px;">
+        <h3 style="font-size:0.95rem; color:#d9381e; margin-bottom:8px; border-bottom:2px solid #f2f2f2; padding-bottom:4px;">
+          ${grupo.categoria}
+        </h3>
     `;
+
+    grupo.itens.forEach(b => {
+      htmlGrupo += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f9f9f9;">
+          <div>
+            <span style="font-size:0.9rem; font-weight:600;">${b.nome}</span><br>
+            <small style="color:#28a745; font-weight:bold;">R$ ${b.preco.toFixed(2).replace('.', ',')}</small>
+          </div>
+          <button type="button" onclick="adicionarDireto('${b.nome}', ${b.preco})" class="btn-add" style="padding:4px 10px; font-size:0.8rem;">+ Pedir</button>
+        </div>
+      `;
+    });
+
+    htmlGrupo += `</div>`;
+    container.innerHTML += htmlGrupo;
   });
 }
 
@@ -303,7 +341,6 @@ function abrirModalMontar(idMarmita) {
     <label class="check-item"><input type="radio" name="opcao-feijao" value="Feijao Normal da Casa" checked onchange="alternarModoFeijoada(false)"> Feijao Normal da Casa (Incluso)</label>
   `;
 
-  // APENAS EXIBE A FEIJOADA COMPLETA SE ESTIVER ATIVADA NO PAINEL DO DONO
   if (cardapioDia.feijoadaAtiva) {
     htmlFeijao += `
       <label class="check-item"><input type="radio" name="opcao-feijao" value="FEIJOADA COMPLETA" onchange="alternarModoFeijoada(true)"> 🍲 FEIJOADA COMPLETA (Arroz, Feijoada, Couve, Farofa e Torresmo)</label>
@@ -370,7 +407,6 @@ function abrirModalMontar(idMarmita) {
     }
   });
 
-  // RENDERIZAR OPÇÃO DE SALADA (COBRADA À PARTE SE ATIVA NO PAINEL)
   const boxSalada = document.getElementById("box-salada-dia");
   if (cardapioDia.saladaAtiva) {
     const descSalada = cardapioDia.saladaDiaDesc || "Salada Mista da Casa";
@@ -642,13 +678,11 @@ function finalizarPedido() {
   window.open(`https://wa.me/${CONFIG.telefoneWhatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
-// PAINEL DO DONO (ADMIN)
 function abrirAdmin() {
   const senha = prompt("Senha do Painel:");
   if (senha === CONFIG.senhaAdmin) {
     document.getElementById("admin-status").value = cardapioDia.statusLoja;
 
-    // Checkbox da Feijoada Completa
     let checkFeijoadaAdmin = document.getElementById("admin-check-feijoada");
     if (!checkFeijoadaAdmin) {
       const parent = document.getElementById("admin-status").parentNode;
@@ -663,7 +697,6 @@ function abrirAdmin() {
     }
     checkFeijoadaAdmin.checked = cardapioDia.feijoadaAtiva === true;
 
-    // Checkbox da Salada
     let checkSaladaAdmin = document.getElementById("admin-check-salada");
     if (!checkSaladaAdmin) {
       const campoSalada = document.getElementById("admin-desc-salada");
@@ -681,7 +714,6 @@ function abrirAdmin() {
     checkSaladaAdmin.checked = cardapioDia.saladaAtiva !== false;
     document.getElementById("admin-desc-salada").value = cardapioDia.saladaDiaDesc || "";
 
-    // Seletor de Sugestões do Chef
     let selectSugestaoAdmin = document.getElementById("admin-select-sugestao");
     if (!selectSugestaoAdmin) {
       const campoSugestao = document.getElementById("admin-desc-sugestao");
@@ -712,7 +744,6 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
-    // Seletor dos Especiais
     let selectEspecialAdmin = document.getElementById("admin-select-especial");
     if (!selectEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");

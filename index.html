@@ -76,11 +76,21 @@
       </div>
     </section>
 
-    <!-- SECCAO DE BEBIDAS E REFRIGERANTES -->
-    <section class="card" style="margin-top: 20px;">
-      <h2>🥤 Bebidas & Refrigerantes</h2>
-      <div id="container-bebidas"></div>
-    </section>
+   <!-- SEÇÃO INTERATIVA DE BEBIDAS E REFRIGERANTES -->
+<section class="card" style="margin-top: 20px;">
+  <h2>🥤 Vai querer bebida hoje?</h2>
+  
+  <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+    <button type="button" onclick="alternarExibicaoBebidas(true)" class="btn-add" style="flex: 1; background: #28a745;">Sim, ver bebidas</button>
+    <button type="button" onclick="alternarExibicaoBebidas(false)" class="btn-add" style="flex: 1; background: #6c757d;">Não, obrigado</button>
+  </div>
+
+  <!-- CONTAINER QUE ABRE QUANDO O CLIENTE CLICA EM "SIM" -->
+  <div id="box-lista-bebidas" style="display: none; margin-top: 15px; border-top: 1px solid #eee; pt: 10px;">
+    <div id="container-bebidas"></div>
+  </div>
+</section>
+
     <!-- CARRINHO E CHECKOUT -->
     <section class="section card-checkout">
       <h2 class="section-title">🛒 Seu Pedido</h2>
