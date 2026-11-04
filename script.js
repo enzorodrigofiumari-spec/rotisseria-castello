@@ -4,6 +4,37 @@ const CONFIG = {
   senhaAdmin: "1234"
 };
 
+// BANCO DE BEBIDAS E REFRIGERANTES
+const BANCO_BEBIDAS = [
+  // LATAS (R$ 5,50)
+  { id: 101, nome: "Coca-Cola Normal Lata", preco: 5.50 },
+  { id: 102, nome: "Coca-Cola Zero Lata", preco: 5.50 },
+  { id: 103, nome: "Guaraná Antarctica Lata", preco: 5.50 },
+  { id: 104, nome: "Guaraná Antarctica Zero Lata", preco: 5.50 },
+
+  // 600ML (R$ 7,50)
+  { id: 105, nome: "Coca-Cola 600ml", preco: 7.50 },
+  { id: 106, nome: "Coca-Cola Zero 600ml", preco: 7.50 },
+  { id: 107, nome: "Guaraná Antarctica 600ml", preco: 7.50 },
+  { id: 108, nome: "Guaraná Antarctica Zero 600ml", preco: 7.50 },
+
+  // H2O (R$ 7,50)
+  { id: 109, nome: "H2O Limão", preco: 7.50 },
+  { id: 110, nome: "H2O Limoneto", preco: 7.50 },
+
+  // GARRAFAS 1,5L E 2L SABORES (R$ 12,00)
+  { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
+  { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
+
+  // COCA 2L (R$ 15,00)
+  { id: 113, nome: "Coca-Cola 2L", preco: 15.00 },
+  { id: 114, nome: "Coca-Cola Zero 2L", preco: 15.00 },
+
+  // ÁGUAS
+  { id: 115, nome: "Água sem Gás", preco: 4.00 },
+  { id: 116, nome: "Água com Gás", preco: 4.50 }
+];
+
 // LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00)
 const BANCO_SUGESTOES = [
   "Macarrao alho e oleo com tomate seco e rucula",
@@ -141,6 +172,7 @@ let marmitaEmSelecao = null;
 document.addEventListener("DOMContentLoaded", () => {
   carregarDados();
   renderizarMarmitasCards();
+  renderizarBebidas();
   atualizarInterface();
   configurarOpcaoPagamentoConta();
   document.getElementById("btn-admin").addEventListener("click", abrirAdmin);
@@ -232,6 +264,24 @@ function renderizarMarmitasCards() {
             <button onclick="abrirModalMontar(${m.id})" class="btn-add">Escolher Itens e Pedir</button>
           </div>
         </div>
+      </div>
+    `;
+  });
+}
+
+function renderizarBebidas() {
+  const container = document.getElementById("container-bebidas");
+  if (!container) return;
+  container.innerHTML = "";
+
+  BANCO_BEBIDAS.forEach(b => {
+    container.innerHTML += `
+      <div class="card-bebida" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+        <div>
+          <strong>${b.nome}</strong><br>
+          <span style="color:#d9381e; font-weight:bold;">R$ ${b.preco.toFixed(2).replace('.', ',')}</span>
+        </div>
+        <button onclick="adicionarDireto('${b.nome}', ${b.preco})" class="btn-add" style="padding:5px 10px;">+ Adicionar</button>
       </div>
     `;
   });
