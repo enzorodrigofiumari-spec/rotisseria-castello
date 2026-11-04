@@ -16,7 +16,7 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
     ]
   },
   {
-    categoria: "🍾 Refrigerantes 600ml",
+    categoria: " Refrigerantes 600ml",
     itens: [
       { id: 105, nome: "Coca-Cola 600ml", preco: 7.50 },
       { id: 106, nome: "Coca-Cola Zero 600ml", preco: 7.50 },
@@ -25,14 +25,14 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
     ]
   },
   {
-    categoria: "🍋 H2O",
+    categoria: " H2O",
     itens: [
       { id: 109, nome: "H2O Limão", preco: 7.50 },
       { id: 110, nome: "H2O Limoneto", preco: 7.50 }
     ]
   },
   {
-    categoria: "Family / Grande (1,5L e 2L)",
+    categoria: " Grande (1,5L e 2L)",
     itens: [
       { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
       { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
@@ -166,6 +166,8 @@ const MARMITAS_TIPOS = [
 const CARDAPIO_DEFAULT = {
   statusLoja: "Aberto",
   feijoadaAtiva: false,
+  fitAtiva: true,
+  fitDesc: "Frango Grelhado + Arroz Integral + Seleta de Legumes a Saute",
   saladaAtiva: true,
   saladaDiaDesc: "Alface, Tomate e Maionese de Batata",
   sugestaoChef: "Nhoque com frango grelhado",
@@ -247,6 +249,41 @@ function atualizarInterface() {
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
 
+  // EXIBIÇÃO DA MARMITA FIT
+  let boxFit = document.getElementById("card-fit-destaque");
+  if (cardapioDia.fitAtiva !== false) {
+    if (!boxFit) {
+      const parent = document.getElementById("desc-sugestao") ? document.getElementById("desc-sugestao").closest(".card") : null;
+      if (parent) {
+        boxFit = document.createElement("div");
+        boxFit.id = "card-fit-destaque";
+        boxFit.className = "card";
+        boxFit.style.marginTop = "15px";
+        boxFit.style.borderLeft = "5px solid #28a745";
+        parent.parentNode.insertBefore(boxFit, parent.nextSibling);
+      }
+    }
+
+    if (boxFit) {
+      boxFit.style.display = "block";
+      boxFit.innerHTML = `
+        <div class="card-body">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span class="badge" style="background:#28a745; color:white; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🥗 OPÇÃO FIT DO DIA</span>
+              <h3 style="margin-top:5px; color:#28a745;">Marmitinha Fit</h3>
+              <p class="descricao-prato" style="margin-top:5px;">${cardapioDia.fitDesc || "Cardapio Fit Especial"}</p>
+            </div>
+            <p class="preco-tag" style="color:#28a745; font-size:1.1rem; font-weight:bold;">R$ 17,50</p>
+          </div>
+          <button onclick="adicionarDireto('Marmitinha Fit: ' + '${cardapioDia.fitDesc || "Marmita Fit do Dia"}', 17.50)" class="btn-add" style="background:#28a745; width:100%; margin-top:10px;">+ Pedir Marmitinha Fit (R$ 17,50)</button>
+        </div>
+      `;
+    }
+  } else if (boxFit) {
+    boxFit.style.display = "none";
+  }
+
   const statusElement = document.getElementById("status-loja");
   if (cardapioDia.statusLoja === "Aberto") {
     statusElement.className = "badge badge-aberto";
@@ -282,7 +319,6 @@ function renderizarMarmitasCards() {
   });
 }
 
-// CONTROLE DE EXIBIÇÃO DA TELA DE BEBIDAS
 function alternarExibicaoBebidas(querBebida) {
   const boxBebidas = document.getElementById("box-lista-bebidas");
   if (!boxBebidas) return;
@@ -294,7 +330,6 @@ function alternarExibicaoBebidas(querBebida) {
   }
 }
 
-// RENDERIZAÇÃO AGRUPADA POR CATEGORIA
 function renderizarBebidas() {
   const container = document.getElementById("container-bebidas");
   if (!container) return;
@@ -683,6 +718,33 @@ function abrirAdmin() {
   if (senha === CONFIG.senhaAdmin) {
     document.getElementById("admin-status").value = cardapioDia.statusLoja;
 
+    // Checkbox da Marmitinha Fit
+    let checkFitAdmin = document.getElementById("admin-check-fit");
+    let inputFitDesc = document.getElementById("admin-desc-fit");
+    if (!checkFitAdmin) {
+      const parent = document.getElementById("admin-status").parentNode;
+      
+      const labelCheckFit = document.createElement("label");
+      labelCheckFit.style.display = "block";
+      labelCheckFit.style.marginTop = "12px";
+      labelCheckFit.style.marginBottom = "5px";
+      labelCheckFit.innerHTML = `<input type="checkbox" id="admin-check-fit"> <strong>Disponibilizar Marmitinha Fit Hoje (R$ 17,50)</strong>`;
+      
+      const labelDescFit = document.createElement("label");
+      labelDescFit.style.display = "block";
+      labelDescFit.style.fontSize = "0.85rem";
+      labelDescFit.style.marginBottom = "10px";
+      labelDescFit.innerHTML = `O que vem na Fit hoje:<br><input type="text" id="admin-desc-fit" style="width:100%; padding:6px; margin-top:3px;" placeholder="Ex: Frango Grelhado, Arroz Integral e Legumes">`;
+
+      parent.appendChild(labelCheckFit);
+      parent.appendChild(labelDescFit);
+      checkFitAdmin = document.getElementById("admin-check-fit");
+      inputFitDesc = document.getElementById("admin-desc-fit");
+    }
+    checkFitAdmin.checked = cardapioDia.fitAtiva !== false;
+    inputFitDesc.value = cardapioDia.fitDesc || "";
+
+    // Checkbox da Feijoada Completa
     let checkFeijoadaAdmin = document.getElementById("admin-check-feijoada");
     if (!checkFeijoadaAdmin) {
       const parent = document.getElementById("admin-status").parentNode;
@@ -697,6 +759,7 @@ function abrirAdmin() {
     }
     checkFeijoadaAdmin.checked = cardapioDia.feijoadaAtiva === true;
 
+    // Checkbox da Salada
     let checkSaladaAdmin = document.getElementById("admin-check-salada");
     if (!checkSaladaAdmin) {
       const campoSalada = document.getElementById("admin-desc-salada");
@@ -714,6 +777,7 @@ function abrirAdmin() {
     checkSaladaAdmin.checked = cardapioDia.saladaAtiva !== false;
     document.getElementById("admin-desc-salada").value = cardapioDia.saladaDiaDesc || "";
 
+    // Seletor de Sugestões do Chef
     let selectSugestaoAdmin = document.getElementById("admin-select-sugestao");
     if (!selectSugestaoAdmin) {
       const campoSugestao = document.getElementById("admin-desc-sugestao");
@@ -744,6 +808,7 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
+    // Seletor dos Especiais
     let selectEspecialAdmin = document.getElementById("admin-select-especial");
     if (!selectEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");
@@ -830,6 +895,12 @@ function salvarDadosAdmin(event) {
   event.preventDefault();
 
   cardapioDia.statusLoja = document.getElementById("admin-status").value;
+  
+  const checkFit = document.getElementById("admin-check-fit");
+  const inputFit = document.getElementById("admin-desc-fit");
+  cardapioDia.fitAtiva = checkFit ? checkFit.checked : true;
+  cardapioDia.fitDesc = inputFit ? inputFit.value : "";
+
   cardapioDia.feijoadaAtiva = document.getElementById("admin-check-feijoada").checked;
   cardapioDia.saladaAtiva = document.getElementById("admin-check-salada").checked;
   cardapioDia.saladaDiaDesc = document.getElementById("admin-desc-salada").value;
