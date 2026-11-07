@@ -97,6 +97,7 @@ const BANCO_OPCOES = {
     "Carne moida com legumes",
     "Charuto de repolho",
     "Costela bovina na panela",
+    "Costelinha assada com barbecue",
     "Costelinha suina assada",
     "Estrogonofe de carne",
     "Estrogonofe de frango",
@@ -179,7 +180,7 @@ const CARDAPIO_DEFAULT = {
   especialImg: "img/contra-file-parmegiana.png",
   feijoesEspeciaisAtivos: [0, 1],
   basesAtivas: [0, 1],
-  carnesAtivas: [1, 11, 16],
+  carnesAtivas: [1, 10, 16],
   guarnicoesAtivas: [5, 13, 16]
 };
 
@@ -203,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function carregarDados() {
   try {
-    const salvos = localStorage.getItem("rotisseria_castello_v18");
+    const salvos = localStorage.getItem("rotisseria_castello_v19");
     if (salvos) {
       cardapioDia = JSON.parse(salvos);
     }
@@ -444,13 +445,15 @@ function abrirModalMontar(idMarmita) {
     }
   });
 
+  // OPÇÃO DE SALADA DUPLA (PEQUENA R$ 1,00 E MÉDIA R$ 4,00)
   const boxSalada = document.getElementById("box-salada-dia");
   if (cardapioDia.saladaAtiva) {
     const descSalada = cardapioDia.saladaDiaDesc || "Salada Mista da Casa";
     boxSalada.parentNode.style.display = "block";
     boxSalada.innerHTML = `
       <label class="check-item"><input type="radio" name="opcao-salada" value="SEM SALADA" checked> SEM SALADA (R$ 0,00)</label>
-      <label class="check-item"><input type="radio" name="opcao-salada" value="Com Salada do Dia (+ R$ 3,00)"> Com Salada de Hoje: ${descSalada} (+ R$ 3,00)</label>
+      <label class="check-item"><input type="radio" name="opcao-salada" value="Salada Pequena (${descSalada}) (+ R$ 1,00)"> Salada Pequena: ${descSalada} (+ R$ 1,00)</label>
+      <label class="check-item"><input type="radio" name="opcao-salada" value="Salada Media (${descSalada}) (+ R$ 4,00)"> Salada Média: ${descSalada} (+ R$ 4,00)</label>
     `;
   } else {
     boxSalada.parentNode.style.display = "none";
@@ -531,8 +534,11 @@ function confirmarMontagemMarmita() {
     precoFinalMarmita += 3.00;
   }
   
-  if (opcaoSalada.includes("+ R$ 3,00")) {
-    precoFinalMarmita += 3.00;
+  // CÁLCULO DOS PREÇOS DAS SALADAS (PEQUENA R$ 1,00 / MÉDIA R$ 4,00)
+  if (opcaoSalada.includes("+ R$ 1,00")) {
+    precoFinalMarmita += 1.00;
+  } else if (opcaoSalada.includes("+ R$ 4,00")) {
+    precoFinalMarmita += 4.00;
   }
 
   const itemPronto = {
@@ -767,7 +773,7 @@ function abrirAdmin() {
       const labelCheck = document.createElement("label");
       labelCheck.style.display = "block";
       labelCheck.style.marginBottom = "8px";
-      labelCheck.innerHTML = `<input type="checkbox" id="admin-check-salada"> <strong>Disponibilizar Salada Hoje (+ R$ 3,00)</strong>`;
+      labelCheck.innerHTML = `<input type="checkbox" id="admin-check-salada"> <strong>Disponibilizar Opções de Salada Hoje</strong>`;
       
       parent.insertBefore(labelCheck, campoSalada);
       checkSaladaAdmin = document.getElementById("admin-check-salada");
@@ -918,7 +924,7 @@ function salvarDadosAdmin(event) {
   cardapioDia.carnesAtivas = Array.from(document.querySelectorAll('input[name="adm-carne"]:checked')).map(i => parseInt(i.value));
   cardapioDia.guarnicoesAtivas = Array.from(document.querySelectorAll('input[name="adm-guarnicao"]:checked')).map(i => parseInt(i.value));
 
-  localStorage.setItem("rotisseria_castello_v18", JSON.stringify(cardapioDia));
+  localStorage.setItem("rotisseria_castello_v19", JSON.stringify(cardapioDia));
 
   atualizarInterface();
   fecharAdmin();
