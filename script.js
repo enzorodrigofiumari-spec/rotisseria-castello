@@ -71,6 +71,7 @@ const BANCO_ESPECIAIS = [
   { nome: "Contra Filé c/ Ovo", desc: "2 Bifes Contra Filé c/ 1 ovo frito em cima + Arroz de Forno (sem molho) + Batata Palha", img: "img/contra-file-ovo.png" },
   { nome: "Tilápia à Parmegiana", desc: "2 pedaços de Tilápia à Parmegiana + Arroz Branco + Batata Frita", img: "img/tilapia-parmegiana.png" },
   { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" }
+  { nome: "Virado a Paulista"}
 ];
 
 // BANCO DE DADOS COMPLETO E ORGANIZADO
@@ -104,6 +105,7 @@ const BANCO_OPCOES = {
     "File de frango acebolado",
     "File de frango grelhado",
     "File de peixe a milanesa",
+    "File de Frango a parmegiana",
     "Frango a passarinho",
     "Frango cremoso",
     "Frango refogado ao molho",
