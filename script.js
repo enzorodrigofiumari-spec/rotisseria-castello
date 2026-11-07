@@ -1,3 +1,19 @@
+// CONFIGURAÇÃO DO FIREBASE COM SUAS CREDENCIAIS REAIS
+const firebaseConfig = {
+  apiKey: "AIzaSyDJlWI7M6mmT0Oqj0Xy2OZfD5BqhpX2_rc",
+  authDomain: "rotisseria-castello.firebaseapp.com",
+  databaseURL: "https://rotisseria-castello-default-rtdb.firebaseio.com",
+  projectId: "rotisseria-castello",
+  storageBucket: "rotisseria-castello.firebasestorage.app",
+  messagingSenderId: "226373631614",
+  appId: "1:226373631614:web:f0954d44e7ffe818c5e22f",
+  measurementId: "G-9VVB9YNNZ2"
+};
+
+// INICIALIZAR FIREBASE (MODO COMPATÍVEL PARA NAVEGADOR)
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 const CONFIG = {
   telefoneWhatsapp: "5516997658154",
   chavePix: "21.878.140/0001-37 (CNPJ)",
@@ -202,15 +218,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ESCUTA EM TEMPO REAL NO FIREBASE
 function carregarDados() {
-  try {
-    const salvos = localStorage.getItem("rotisseria_castello_v19");
-    if (salvos) {
-      cardapioDia = JSON.parse(salvos);
+  database.ref("cardapioDia").on("value", (snapshot) => {
+    const dadosNuvem = snapshot.val();
+    if (dadosNuvem) {
+      cardapioDia = dadosNuvem;
+      atualizarInterface();
+    } else {
+      cardapioDia = { ...CARDAPIO_DEFAULT };
+      database.ref("cardapioDia").set(CARDAPIO_DEFAULT);
     }
-  } catch (e) {
-    cardapioDia = { ...CARDAPIO_DEFAULT };
-  }
+  });
 }
 
 function configurarOpcaoPagamentoConta() {
@@ -445,7 +464,6 @@ function abrirModalMontar(idMarmita) {
     }
   });
 
-  // OPÇÃO DE SALADA DUPLA (PEQUENA R$ 1,00 E MÉDIA R$ 4,00)
   const boxSalada = document.getElementById("box-salada-dia");
   if (cardapioDia.saladaAtiva) {
     const descSalada = cardapioDia.saladaDiaDesc || "Salada Mista da Casa";
@@ -534,7 +552,6 @@ function confirmarMontagemMarmita() {
     precoFinalMarmita += 3.00;
   }
   
-  // CÁLCULO DOS PREÇOS DAS SALADAS (PEQUENA R$ 1,00 / MÉDIA R$ 4,00)
   if (opcaoSalada.includes("+ R$ 1,00")) {
     precoFinalMarmita += 1.00;
   } else if (opcaoSalada.includes("+ R$ 4,00")) {
@@ -894,6 +911,7 @@ function fecharAdmin() {
   document.getElementById("modal-admin").style.display = "none";
 }
 
+// SALVA NA NUVEM PARA TODOS OS DISPOSITIVOS SIMULTANEAMENTE
 function salvarDadosAdmin(event) {
   event.preventDefault();
 
@@ -924,9 +942,12 @@ function salvarDadosAdmin(event) {
   cardapioDia.carnesAtivas = Array.from(document.querySelectorAll('input[name="adm-carne"]:checked')).map(i => parseInt(i.value));
   cardapioDia.guarnicoesAtivas = Array.from(document.querySelectorAll('input[name="adm-guarnicao"]:checked')).map(i => parseInt(i.value));
 
-  localStorage.setItem("rotisseria_castello_v19", JSON.stringify(cardapioDia));
-
-  atualizarInterface();
-  fecharAdmin();
-  alert("Cardapio do dia atualizado com sucesso!");
+  database.ref("cardapioDia").set(cardapioDia)
+    .then(() => {
+      fecharAdmin();
+      alert("Cardápio do dia atualizado EM TEMPO REAL para todos os computadores e clientes!");
+    })
+    .catch((error) => {
+      alert("Erro ao salvar na nuvem: " + error.message);
+    });
 }
