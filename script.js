@@ -16,7 +16,7 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
     ]
   },
   {
-    categoria: " Refrigerantes 600ml",
+    categoria: "🍾 Refrigerantes 600ml",
     itens: [
       { id: 105, nome: "Coca-Cola 600ml", preco: 7.50 },
       { id: 106, nome: "Coca-Cola Zero 600ml", preco: 7.50 },
@@ -25,14 +25,14 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
     ]
   },
   {
-    categoria: " H2O",
+    categoria: "🍋 H2O",
     itens: [
       { id: 109, nome: "H2O Limão", preco: 7.50 },
       { id: 110, nome: "H2O Limoneto", preco: 7.50 }
     ]
   },
   {
-    categoria: " Grande (1,5L e 2L)",
+    categoria: "Family / Grande (1,5L e 2L)",
     itens: [
       { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
       { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
@@ -70,8 +70,8 @@ const BANCO_ESPECIAIS = [
   { nome: "Baby Beef", desc: "2 Bifes Baby Grelhados c/ pimenta biquinho + Batata Frita + Arroz Cremos e Cenoura", img: "img/baby-beef.png" },
   { nome: "Contra Filé c/ Ovo", desc: "2 Bifes Contra Filé c/ 1 ovo frito em cima + Arroz de Forno (sem molho) + Batata Palha", img: "img/contra-file-ovo.png" },
   { nome: "Tilápia à Parmegiana", desc: "2 pedaços de Tilápia à Parmegiana + Arroz Branco + Batata Frita", img: "img/tilapia-parmegiana.png" },
-  { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" }
-  { nome: "Virado a Paulista"}
+  { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" },
+  { nome: "Virado a Paulista", desc: "", img: "" }
 ];
 
 // BANCO DE DADOS COMPLETO E ORGANIZADO
@@ -102,10 +102,10 @@ const BANCO_OPCOES = {
     "Estrogonofe de frango",
     "Feijoada da Casa",
     "File de frango a milanesa",
+    "File de frango a parmegiana",
     "File de frango acebolado",
     "File de frango grelhado",
     "File de peixe a milanesa",
-    "File de Frango a parmegiana",
     "Frango a passarinho",
     "Frango cremoso",
     "Frango refogado ao molho",
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function carregarDados() {
   try {
-    const salvos = localStorage.getItem("rotisseria_castello_v17");
+    const salvos = localStorage.getItem("rotisseria_castello_v18");
     if (salvos) {
       cardapioDia = JSON.parse(salvos);
     }
@@ -246,7 +246,7 @@ function alternarExibicaoEndereco() {
 
 function atualizarInterface() {
   document.getElementById("desc-sugestao").innerText = cardapioDia.sugestaoChef || CARDAPIO_DEFAULT.sugestaoChef;
-  document.getElementById("desc-especial").innerText = (cardapioDia.especialNome ? cardapioDia.especialNome + ": " : "") + (cardapioDia.especialDia || CARDAPIO_DEFAULT.especialDia);
+  document.getElementById("desc-especial").innerText = (cardapioDia.especialNome ? cardapioDia.especialNome + (cardapioDia.especialDia ? ": " + cardapioDia.especialDia : "") : CARDAPIO_DEFAULT.especialDia);
   
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
@@ -720,7 +720,6 @@ function abrirAdmin() {
   if (senha === CONFIG.senhaAdmin) {
     document.getElementById("admin-status").value = cardapioDia.statusLoja;
 
-    // Checkbox da Marmitinha Fit
     let checkFitAdmin = document.getElementById("admin-check-fit");
     let inputFitDesc = document.getElementById("admin-desc-fit");
     if (!checkFitAdmin) {
@@ -746,7 +745,6 @@ function abrirAdmin() {
     checkFitAdmin.checked = cardapioDia.fitAtiva !== false;
     inputFitDesc.value = cardapioDia.fitDesc || "";
 
-    // Checkbox da Feijoada Completa
     let checkFeijoadaAdmin = document.getElementById("admin-check-feijoada");
     if (!checkFeijoadaAdmin) {
       const parent = document.getElementById("admin-status").parentNode;
@@ -761,7 +759,6 @@ function abrirAdmin() {
     }
     checkFeijoadaAdmin.checked = cardapioDia.feijoadaAtiva === true;
 
-    // Checkbox da Salada
     let checkSaladaAdmin = document.getElementById("admin-check-salada");
     if (!checkSaladaAdmin) {
       const campoSalada = document.getElementById("admin-desc-salada");
@@ -779,7 +776,6 @@ function abrirAdmin() {
     checkSaladaAdmin.checked = cardapioDia.saladaAtiva !== false;
     document.getElementById("admin-desc-salada").value = cardapioDia.saladaDiaDesc || "";
 
-    // Seletor de Sugestões do Chef
     let selectSugestaoAdmin = document.getElementById("admin-select-sugestao");
     if (!selectSugestaoAdmin) {
       const campoSugestao = document.getElementById("admin-desc-sugestao");
@@ -810,7 +806,6 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
-    // Seletor dos Especiais
     let selectEspecialAdmin = document.getElementById("admin-select-especial");
     if (!selectEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");
@@ -923,7 +918,7 @@ function salvarDadosAdmin(event) {
   cardapioDia.carnesAtivas = Array.from(document.querySelectorAll('input[name="adm-carne"]:checked')).map(i => parseInt(i.value));
   cardapioDia.guarnicoesAtivas = Array.from(document.querySelectorAll('input[name="adm-guarnicao"]:checked')).map(i => parseInt(i.value));
 
-  localStorage.setItem("rotisseria_castello_v17", JSON.stringify(cardapioDia));
+  localStorage.setItem("rotisseria_castello_v18", JSON.stringify(cardapioDia));
 
   atualizarInterface();
   fecharAdmin();
