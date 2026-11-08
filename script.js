@@ -65,13 +65,12 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
   }
 ];
 
-// LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00) & COMBOS
+// LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00)
 const BANCO_SUGESTOES = [
   "Macarrao alho e oleo com tomate seco e rucula",
   "Hamburguer a Cavalo (marmitex redondo 500ml)",
   "Nhoque com frango grelhado",
   "Especial de Panqueca (Carne, Frango ou Mista)",
-  "Combo de Panquecas (R$ 30,00)",
   "Macarrao parisiense com file de frango grelhado e batata frita"
 ];
 
@@ -201,6 +200,7 @@ const CARDAPIO_DEFAULT = {
   feijoadaAtiva: false,
   fitAtiva: true,
   fitDesc: "Frango Grelhado + Arroz Integral + Seleta de Legumes a Saute",
+  comboPanquecaAtivo: true,
   saladaAtiva: true,
   saladaDiaDesc: "Alface, Tomate e Maionese de Batata",
   sugestaoChef: "Especial de Panqueca (Carne, Frango ou Mista)",
@@ -217,6 +217,7 @@ const CARDAPIO_DEFAULT = {
 let cardapioDia = { ...CARDAPIO_DEFAULT };
 let carrinho = [];
 let marmitaEmSelecao = null;
+let panquecaItemTemp = null; // Armazena dados temporários da panqueca para o modal
 
 document.addEventListener("DOMContentLoaded", () => {
   carregarDados();
@@ -286,17 +287,17 @@ function atualizarInterface() {
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
 
-  // Ajusta o botão da sugestão caso seja Panqueca ou Combo de Panqueca
-  const btnSugestao = document.querySelector('#desc-sugestao').closest('.card').querySelector('.btn-add');
+  // BOTÃO DA SUGESTÃO DO CHEF
+  const btnSugestao = document.querySelector('#desc-sugestao')?.closest('.card')?.querySelector('.btn-add');
   if (btnSugestao) {
     if (sugestaoTexto.toLowerCase().includes("panqueca")) {
-      btnSugestao.setAttribute("onclick", `pedirPanqueca('${sugestaoTexto}', 23.00)`);
+      btnSugestao.setAttribute("onclick", `abrirModalPanqueca('${sugestaoTexto}', 23.00)`);
     } else {
       btnSugestao.setAttribute("onclick", `adicionarDireto('${sugestaoTexto}', 23.00)`);
     }
   }
 
-  // EXIBIÇÃO DA MARMITA FIT
+  // CARD FIXO DA MARMITA FIT
   let boxFit = document.getElementById("card-fit-destaque");
   if (cardapioDia.fitAtiva !== false) {
     if (!boxFit) {
@@ -331,6 +332,41 @@ function atualizarInterface() {
     boxFit.style.display = "none";
   }
 
+  // CARD FIXO DO COMBO DE PANQUECAS (R$ 30,00)
+  let boxComboPanqueca = document.getElementById("card-combo-panqueca");
+  if (cardapioDia.comboPanquecaAtivo !== false) {
+    if (!boxComboPanqueca) {
+      const refElement = document.getElementById("card-fit-destaque") || (document.getElementById("desc-sugestao") ? document.getElementById("desc-sugestao").closest(".card") : null);
+      if (refElement) {
+        boxComboPanqueca = document.createElement("div");
+        boxComboPanqueca.id = "card-combo-panqueca";
+        boxComboPanqueca.className = "card";
+        boxComboPanqueca.style.marginTop = "15px";
+        boxComboPanqueca.style.borderLeft = "5px solid #d9381e";
+        refElement.parentNode.insertBefore(boxComboPanqueca, refElement.nextSibling);
+      }
+    }
+
+    if (boxComboPanqueca) {
+      boxComboPanqueca.style.display = "block";
+      boxComboPanqueca.innerHTML = `
+        <div class="card-body">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span class="badge" style="background:#d9381e; color:white; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🥞 COMBO ESPECIAL</span>
+              <h3 style="margin-top:5px; color:#d9381e;">Combo de Panquecas</h3>
+              <p class="descricao-prato" style="margin-top:5px;">Panquecas artesanais acompanhadas de Arroz + Batata Frita + Salada</p>
+            </div>
+            <p class="preco-tag" style="color:#d9381e; font-size:1.1rem; font-weight:bold;">R$ 30,00</p>
+          </div>
+          <button onclick="abrirModalPanqueca('Combo de Panquecas', 30.00)" class="btn-add" style="background:#d9381e; width:100%; margin-top:10px;">+ Escolher Recheio e Pedir (R$ 30,00)</button>
+        </div>
+      `;
+    }
+  } else if (boxComboPanqueca) {
+    boxComboPanqueca.style.display = "none";
+  }
+
   const statusElement = document.getElementById("status-loja");
   if (cardapioDia.statusLoja === "Aberto") {
     statusElement.className = "badge badge-aberto";
@@ -341,33 +377,76 @@ function atualizarInterface() {
   }
 }
 
-// FUNÇÃO PARA PEDIR PANQUECAS COM SELEÇÃO INTERATIVA DE RECHEIO
-function pedirPanqueca(nomeItem, preco) {
+// CRIA E ABRE O MODAL INTERATIVO COM BOTÕES PARA AS PANQUECAS
+function abrirModalPanqueca(nomeItem, preco) {
   if (cardapioDia.statusLoja !== "Aberto") {
     alert("Desculpe, a loja está fechada no momento!");
     return;
   }
 
-  const escolha = prompt(
-    `Escolha o sabor das panquecas para "${nomeItem}":\n\n1 - Só Frango\n2 - Só Carne\n3 - Mista (Frango + Carne)\n\nDigite 1, 2 ou 3:`
-  );
+  panquecaItemTemp = { nome: nomeItem, preco: preco };
 
-  let recheio = "";
-  if (escolha === "1") recheio = "Só Frango";
-  else if (escolha === "2") recheio = "Só Carne";
-  else if (escolha === "3") recheio = "Mista (Frango + Carne)";
-  else {
-    alert("Opção inválida! Pedido cancelado.");
-    return;
+  let modalPanqueca = document.getElementById("modal-selecao-panqueca");
+  if (!modalPanqueca) {
+    modalPanqueca = document.createElement("div");
+    modalPanqueca.id = "modal-selecao-panqueca";
+    modalPanqueca.className = "modal";
+    modalPanqueca.style.display = "none";
+    modalPanqueca.style.position = "fixed";
+    modalPanqueca.style.top = "0";
+    modalPanqueca.style.left = "0";
+    modalPanqueca.style.width = "100%";
+    modalPanqueca.style.height = "100%";
+    modalPanqueca.style.backgroundColor = "rgba(0,0,0,0.6)";
+    modalPanqueca.style.zIndex = "9999";
+    modalPanqueca.style.justifyContent = "center";
+    modalPanqueca.style.alignItems = "center";
+
+    modalPanqueca.innerHTML = `
+      <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; position: relative;">
+        <h3 id="titulo-modal-panqueca" style="color: #d9381e; margin-bottom: 10px;">Escolha o Recheio</h3>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Clique na opção desejada para adicionar ao seu pedido:</p>
+        
+        <button onclick="confirmarRecheioPanqueca('Só Frango')" class="btn-add" style="width: 100%; margin-bottom: 10px; padding: 12px; font-size: 1rem; background: #28a745;">
+          🍗 Só Frango
+        </button>
+        <button onclick="confirmarRecheioPanqueca('Só Carne')" class="btn-add" style="width: 100%; margin-bottom: 10px; padding: 12px; font-size: 1rem; background: #d9381e;">
+          🥩 Só Carne
+        </button>
+        <button onclick="confirmarRecheioPanqueca('Mista (Frango + Carne)')" class="btn-add" style="width: 100%; margin-bottom: 15px; padding: 12px; font-size: 1rem; background: #fd7e14;">
+          🌓 Mista (Frango + Carne)
+        </button>
+
+        <button onclick="fecharModalPanqueca()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+          Cancelar
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(modalPanqueca);
   }
 
+  document.getElementById("titulo-modal-panqueca").innerText = `Recheio das Panquecas (${nomeItem})`;
+  modalPanqueca.style.display = "flex";
+}
+
+function fecharModalPanqueca() {
+  const modalPanqueca = document.getElementById("modal-selecao-panqueca");
+  if (modalPanqueca) modalPanqueca.style.display = "none";
+  panquecaItemTemp = null;
+}
+
+function confirmarRecheioPanqueca(recheio) {
+  if (!panquecaItemTemp) return;
+
   carrinho.push({
-    nome: `${nomeItem} (${recheio})`,
-    preco: preco,
+    nome: `${panquecaItemTemp.nome} (${recheio})`,
+    preco: panquecaItemTemp.preco,
     detalhes: null,
     qtd: 1
   });
 
+  fecharModalPanqueca();
   renderizarCarrinho();
 }
 
@@ -504,10 +583,10 @@ function abrirModalMontar(idMarmita) {
             <label class="check-item" style="font-weight:bold;">
               <input type="checkbox" name="carne-opcao" value="${nome}"> ${nome}
             </label>
-            <div style="margin-left: 20px; font-size: 0.85rem; color: #856404;">
+            <div style="margin-left: 20px; font-size: 0.85rem; color: #856404; margin-top: 4px;">
               Recheio: 
-              <label><input type="radio" name="sabor-panqueca-marmita" value="Só Frango" checked> Só Frango</label>
-              <label><input type="radio" name="sabor-panqueca-marmita" value="Só Carne"> Só Carne</label>
+              <label style="margin-right:8px;"><input type="radio" name="sabor-panqueca-marmita" value="Só Frango" checked> Só Frango</label>
+              <label style="margin-right:8px;"><input type="radio" name="sabor-panqueca-marmita" value="Só Carne"> Só Carne</label>
               <label><input type="radio" name="sabor-panqueca-marmita" value="Mista"> Mista</label>
             </div>
           </div>
@@ -848,6 +927,20 @@ function abrirAdmin() {
     checkFitAdmin.checked = cardapioDia.fitAtiva !== false;
     inputFitDesc.value = cardapioDia.fitDesc || "";
 
+    let checkComboPAdmin = document.getElementById("admin-check-combop");
+    if (!checkComboPAdmin) {
+      const parent = document.getElementById("admin-status").parentNode;
+      const labelCheckP = document.createElement("label");
+      labelCheckP.style.display = "block";
+      labelCheckP.style.marginTop = "10px";
+      labelCheckP.style.marginBottom = "8px";
+      labelCheckP.innerHTML = `<input type="checkbox" id="admin-check-combop"> <strong>Disponibilizar COMBO DE PANQUECAS Hoje (R$ 30,00)</strong>`;
+      
+      parent.appendChild(labelCheckP);
+      checkComboPAdmin = document.getElementById("admin-check-combop");
+    }
+    checkComboPAdmin.checked = cardapioDia.comboPanquecaAtivo !== false;
+
     let checkFeijoadaAdmin = document.getElementById("admin-check-feijoada");
     if (!checkFeijoadaAdmin) {
       const parent = document.getElementById("admin-status").parentNode;
@@ -885,7 +978,7 @@ function abrirAdmin() {
       const parent = campoSugestao.parentNode;
 
       const labelSelectS = document.createElement("label");
-      labelSelectS.innerHTML = "<strong>Escolha a Sugestão do Chef / Combo:</strong>";
+      labelSelectS.innerHTML = "<strong>Escolha a Sugestão do Chef:</strong>";
       labelSelectS.style.display = "block";
 
       selectSugestaoAdmin = document.createElement("select");
@@ -1001,6 +1094,9 @@ function salvarDadosAdmin(event) {
   const inputFit = document.getElementById("admin-desc-fit");
   cardapioDia.fitAtiva = checkFit ? checkFit.checked : true;
   cardapioDia.fitDesc = inputFit ? inputFit.value : "";
+
+  const checkComboP = document.getElementById("admin-check-combop");
+  cardapioDia.comboPanquecaAtivo = checkComboP ? checkComboP.checked : true;
 
   cardapioDia.feijoadaAtiva = document.getElementById("admin-check-feijoada").checked;
   cardapioDia.saladaAtiva = document.getElementById("admin-check-salada").checked;
