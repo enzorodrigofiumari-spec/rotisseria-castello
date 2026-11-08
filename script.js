@@ -65,13 +65,13 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
   }
 ];
 
-// LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00)
+// LISTA FIXA DE SUGESTÕES DO CHEF (R$ 23,00) & COMBOS
 const BANCO_SUGESTOES = [
   "Macarrao alho e oleo com tomate seco e rucula",
   "Hamburguer a Cavalo (marmitex redondo 500ml)",
   "Nhoque com frango grelhado",
-  "Especial de panqueca de frango",
-  "Especial de panqueca de carne",
+  "Especial de Panqueca (Carne, Frango ou Mista)",
+  "Combo de Panquecas (R$ 30,00)",
   "Macarrao parisiense com file de frango grelhado e batata frita"
 ];
 
@@ -90,7 +90,7 @@ const BANCO_ESPECIAIS = [
   { nome: "Virado a Paulista", desc: "", img: "" }
 ];
 
-// BANCO DE DADOS COMPLETO E ORGANIZADO
+// BANCO DE DADOS COMPLETO E ORGANIZADO COM OS NOVOS ITENS DA SEMANA
 const BANCO_OPCOES = {
   feijoesEspeciais: [
     "Feijao Tropeiro",
@@ -115,29 +115,36 @@ const BANCO_OPCOES = {
     "Costela bovina na panela",
     "Costelinha assada com barbecue",
     "Costelinha suina assada",
+    "Dobradinha",
     "Estrogonofe de carne",
     "Estrogonofe de frango",
     "Feijoada da Casa",
     "File de frango a milanesa",
     "File de frango a parmegiana",
     "File de frango acebolado",
+    "File de frango com creme de milho",
     "File de frango grelhado",
     "File de peixe a milanesa",
     "Frango a passarinho",
     "Frango cremoso",
     "Frango refogado ao molho",
+    "Frango xadrez",
     "Fricasse de frango com batata palha",
     "Iscas de frango com bacon e requeijao",
     "Iscas de frango crocante",
+    "Linguica fininha frita",
     "Linguica recheada com vinagrete e queijo",
     "Linguica toscana acebolada",
+    "Linguica toscana com vinagrete e requeijao",
+    "Lombo assado",
     "Lombo assado ao molho madeira",
-    "Panqueca de carne ou frango",
+    "Panquecas de frango ou carne",
     "Pernil na panela",
     "Picadinho de frango com mostarda e legumes",
     "Ponta de peito assada ao molho",
     "Quibe assado recheado",
     "Sobrecoxa de frango assada",
+    "Staek de frango a parmegiana",
     "Tiras de carne com tomate e cebola",
     "Tirinhas de frango crocante"
   ],
@@ -153,8 +160,11 @@ const BANCO_OPCOES = {
     "Batata com cenoura refogada",
     "Bolinho de arroz com espinafre",
     "Cabotia refogada",
+    "Cenoura com Brocolis",
+    "Cenoura refogada",
     "Chica doida (creme de milho com queijo e bacon)",
     "Chuchu com molho branco e ricota",
+    "Chuchu refogado",
     "Couve refogada",
     "Espaguete ao molho de tomate",
     "Espaguete alho e oleo",
@@ -163,12 +173,16 @@ const BANCO_OPCOES = {
     "Fettuccine ao molho de calabresa",
     "Jilo frito",
     "Legumes a saute",
+    "Macarrao colorido alho e oleo",
     "Macarrao com molho branco e parmesao",
+    "Macarrao espaguete ao molho de tomate",
+    "Macarrao yakissoba de legumes",
     "Mandioca frita",
     "Mix / Seleta de legumes",
     "Ovo frito",
     "Polenta ao molho",
     "Repolho refogado com tomate",
+    "Tempura de legumes",
     "Torta de frango com requeijao"
   ]
 };
@@ -189,7 +203,7 @@ const CARDAPIO_DEFAULT = {
   fitDesc: "Frango Grelhado + Arroz Integral + Seleta de Legumes a Saute",
   saladaAtiva: true,
   saladaDiaDesc: "Alface, Tomate e Maionese de Batata",
-  sugestaoChef: "Nhoque com frango grelhado",
+  sugestaoChef: "Especial de Panqueca (Carne, Frango ou Mista)",
   sugestaoImg: "img/sugestao.png",
   especialNome: "Contra File a Parmegiana",
   especialDia: "2 Bifes Contra File a Parmegiana (sem gordura) + Arroz Branco + Batata Frita",
@@ -265,11 +279,22 @@ function alternarExibicaoEndereco() {
 }
 
 function atualizarInterface() {
-  document.getElementById("desc-sugestao").innerText = cardapioDia.sugestaoChef || CARDAPIO_DEFAULT.sugestaoChef;
+  const sugestaoTexto = cardapioDia.sugestaoChef || CARDAPIO_DEFAULT.sugestaoChef;
+  document.getElementById("desc-sugestao").innerText = sugestaoTexto;
   document.getElementById("desc-especial").innerText = (cardapioDia.especialNome ? cardapioDia.especialNome + (cardapioDia.especialDia ? ": " + cardapioDia.especialDia : "") : CARDAPIO_DEFAULT.especialDia);
   
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
+
+  // Ajusta o botão da sugestão caso seja Panqueca ou Combo de Panqueca
+  const btnSugestao = document.querySelector('#desc-sugestao').closest('.card').querySelector('.btn-add');
+  if (btnSugestao) {
+    if (sugestaoTexto.toLowerCase().includes("panqueca")) {
+      btnSugestao.setAttribute("onclick", `pedirPanqueca('${sugestaoTexto}', 23.00)`);
+    } else {
+      btnSugestao.setAttribute("onclick", `adicionarDireto('${sugestaoTexto}', 23.00)`);
+    }
+  }
 
   // EXIBIÇÃO DA MARMITA FIT
   let boxFit = document.getElementById("card-fit-destaque");
@@ -314,6 +339,36 @@ function atualizarInterface() {
     statusElement.className = "badge badge-fechado";
     statusElement.innerText = "Fechado no Momento";
   }
+}
+
+// FUNÇÃO PARA PEDIR PANQUECAS COM SELEÇÃO INTERATIVA DE RECHEIO
+function pedirPanqueca(nomeItem, preco) {
+  if (cardapioDia.statusLoja !== "Aberto") {
+    alert("Desculpe, a loja está fechada no momento!");
+    return;
+  }
+
+  const escolha = prompt(
+    `Escolha o sabor das panquecas para "${nomeItem}":\n\n1 - Só Frango\n2 - Só Carne\n3 - Mista (Frango + Carne)\n\nDigite 1, 2 ou 3:`
+  );
+
+  let recheio = "";
+  if (escolha === "1") recheio = "Só Frango";
+  else if (escolha === "2") recheio = "Só Carne";
+  else if (escolha === "3") recheio = "Mista (Frango + Carne)";
+  else {
+    alert("Opção inválida! Pedido cancelado.");
+    return;
+  }
+
+  carrinho.push({
+    nome: `${nomeItem} (${recheio})`,
+    preco: preco,
+    detalhes: null,
+    qtd: 1
+  });
+
+  renderizarCarrinho();
 }
 
 function renderizarMarmitasCards() {
@@ -443,11 +498,27 @@ function abrirModalMontar(idMarmita) {
   (cardapioDia.carnesAtivas || [0]).forEach(idx => {
     const nome = BANCO_OPCOES.carnes[idx];
     if (nome) {
-      boxCarnes.innerHTML += `
-        <label class="check-item">
-          <input type="checkbox" name="carne-opcao" value="${nome}"> ${nome}
-        </label>
-      `;
+      if (nome.toLowerCase().includes("panqueca")) {
+        boxCarnes.innerHTML += `
+          <div style="margin: 6px 0; padding: 6px; background: #fff3cd; border-radius: 4px;">
+            <label class="check-item" style="font-weight:bold;">
+              <input type="checkbox" name="carne-opcao" value="${nome}"> ${nome}
+            </label>
+            <div style="margin-left: 20px; font-size: 0.85rem; color: #856404;">
+              Recheio: 
+              <label><input type="radio" name="sabor-panqueca-marmita" value="Só Frango" checked> Só Frango</label>
+              <label><input type="radio" name="sabor-panqueca-marmita" value="Só Carne"> Só Carne</label>
+              <label><input type="radio" name="sabor-panqueca-marmita" value="Mista"> Mista</label>
+            </div>
+          </div>
+        `;
+      } else {
+        boxCarnes.innerHTML += `
+          <label class="check-item">
+            <input type="checkbox" name="carne-opcao" value="${nome}"> ${nome}
+          </label>
+        `;
+      }
     }
   });
 
@@ -528,7 +599,16 @@ function confirmarMontagemMarmita() {
     guarnicoesSelec = ["Couve refogada", "Farofa da casa", "Torresmo crocante"];
   } else {
     baseSelec = document.querySelector('input[name="base-opcao"]:checked')?.value || "Arroz Branco";
-    carnesSelec = Array.from(document.querySelectorAll('input[name="carne-opcao"]:checked')).map(c => c.value);
+    
+    document.querySelectorAll('input[name="carne-opcao"]:checked').forEach(c => {
+      let nomeCarne = c.value;
+      if (nomeCarne.toLowerCase().includes("panqueca")) {
+        const saborP = document.querySelector('input[name="sabor-panqueca-marmita"]:checked')?.value || "Só Frango";
+        nomeCarne += ` (${saborP})`;
+      }
+      carnesSelec.push(nomeCarne);
+    });
+
     guarnicoesSelec = Array.from(document.querySelectorAll('input[name="guarnicao-opcao"]:checked')).map(g => g.value);
 
     if (carnesSelec.length > marmitaEmSelecao.maxCarnes) {
@@ -805,7 +885,7 @@ function abrirAdmin() {
       const parent = campoSugestao.parentNode;
 
       const labelSelectS = document.createElement("label");
-      labelSelectS.innerHTML = "<strong>Escolha a Sugestão do Chef (R$ 23,00):</strong>";
+      labelSelectS.innerHTML = "<strong>Escolha a Sugestão do Chef / Combo:</strong>";
       labelSelectS.style.display = "block";
 
       selectSugestaoAdmin = document.createElement("select");
