@@ -86,7 +86,8 @@ const BANCO_ESPECIAIS = [
   { nome: "Contra Filé c/ Ovo", desc: "2 Bifes Contra Filé c/ 1 ovo frito em cima + Arroz de Forno (sem molho) + Batata Palha", img: "img/contra-file-ovo.png" },
   { nome: "Tilápia à Parmegiana", desc: "2 pedaços de Tilápia à Parmegiana + Arroz Branco + Batata Frita", img: "img/tilapia-parmegiana.png" },
   { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" },
-  { nome: "Virado a Paulista", desc: "Virado à Paulista + Arroz + Feijão + Ovo + Couve + Bisteca", img: "img/virado-paulista.png" }
+  { nome: "Virado a Paulista", desc: "Virado à Paulista + Arroz + Feijão + Ovo + Couve + Bisteca", img: "img/virado-paulista.png" },
+  { nome: "Porpetone Recheado", desc: "Porpeta enrolada com bacon e recheada com requeijão + Arroz branco + Iscas de frango crocante + Brócolis refogado + Batata frita", img: "img/porpetone-recheado.png" }
 ];
 
 // BANCO DE DADOS COMPLETO E ORGANIZADO COM OS NOVOS ITENS DA SEMANA
