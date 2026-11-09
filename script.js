@@ -201,6 +201,8 @@ const CARDAPIO_DEFAULT = {
   fitAtiva: true,
   fitDesc: "Frango Grelhado + Arroz Integral + Seleta de Legumes a Saute",
   comboPanquecaAtivo: true,
+  sugestaoAtiva: true,
+  especialAtivo: true,
   saladaAtiva: true,
   saladaDiaDesc: "Alface, Tomate e Maionese de Batata",
   sugestaoChef: "Especial de Panqueca (Carne, Frango ou Mista)",
@@ -287,13 +289,31 @@ function atualizarInterface() {
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
 
-  // BOTÃO DA SUGESTÃO DO CHEF
-  const btnSugestao = document.querySelector('#desc-sugestao')?.closest('.card')?.querySelector('.btn-add');
-  if (btnSugestao) {
-    if (sugestaoTexto.toLowerCase().includes("panqueca")) {
-      btnSugestao.setAttribute("onclick", `abrirModalPanqueca('${sugestaoTexto}', 23.00)`);
+  // VISIBILIDADE DA SUGESTÃO DO CHEF
+  const cardSugestao = document.getElementById("desc-sugestao")?.closest('.card');
+  if (cardSugestao) {
+    if (cardapioDia.sugestaoAtiva !== false) {
+      cardSugestao.style.display = "block";
+      const btnSugestao = cardSugestao.querySelector('.btn-add');
+      if (btnSugestao) {
+        if (sugestaoTexto.toLowerCase().includes("panqueca")) {
+          btnSugestao.setAttribute("onclick", `abrirModalPanqueca('${sugestaoTexto}', 23.00)`);
+        } else {
+          btnSugestao.setAttribute("onclick", `adicionarDireto('${sugestaoTexto}', 23.00)`);
+        }
+      }
     } else {
-      btnSugestao.setAttribute("onclick", `adicionarDireto('${sugestaoTexto}', 23.00)`);
+      cardSugestao.style.display = "none";
+    }
+  }
+
+  // VISIBILIDADE DO ESPECIAL DO DIA
+  const cardEspecial = document.getElementById("desc-especial")?.closest('.card');
+  if (cardEspecial) {
+    if (cardapioDia.especialAtivo !== false) {
+      cardEspecial.style.display = "block";
+    } else {
+      cardEspecial.style.display = "none";
     }
   }
 
@@ -973,6 +993,22 @@ function abrirAdmin() {
     checkSaladaAdmin.checked = cardapioDia.saladaAtiva !== false;
     document.getElementById("admin-desc-salada").value = cardapioDia.saladaDiaDesc || "";
 
+    // CHECKBOX SUGESTÃO DO CHEF
+    let checkSugestaoAdmin = document.getElementById("admin-check-sugestao");
+    if (!checkSugestaoAdmin) {
+      const campoSugestao = document.getElementById("admin-desc-sugestao");
+      const parent = campoSugestao.parentNode;
+
+      const labelCheckS = document.createElement("label");
+      labelCheckS.style.display = "block";
+      labelCheckS.style.marginBottom = "8px";
+      labelCheckS.innerHTML = `<input type="checkbox" id="admin-check-sugestao"> <strong>Disponibilizar SUGESTÃO DO CHEF Hoje (R$ 23,00)</strong>`;
+      
+      parent.insertBefore(labelCheckS, parent.firstChild);
+      checkSugestaoAdmin = document.getElementById("admin-check-sugestao");
+    }
+    checkSugestaoAdmin.checked = cardapioDia.sugestaoAtiva !== false;
+
     let selectSugestaoAdmin = document.getElementById("admin-select-sugestao");
     if (!selectSugestaoAdmin) {
       const campoSugestao = document.getElementById("admin-desc-sugestao");
@@ -1003,7 +1039,23 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
-    // SELEÇÃO DO ESPECIAL DO DIA (PREENCHE DESCRIÇÃO E CAMINHO DA FOTO AUTOMATICAMENTE)
+    // CHECKBOX ESPECIAL DO DIA
+    let checkEspecialAdmin = document.getElementById("admin-check-especial");
+    if (!checkEspecialAdmin) {
+      const campoEspecial = document.getElementById("admin-desc-especial");
+      const parent = campoEspecial.parentNode;
+
+      const labelCheckE = document.createElement("label");
+      labelCheckE.style.display = "block";
+      labelCheckE.style.marginTop = "12px";
+      labelCheckE.style.marginBottom = "8px";
+      labelCheckE.innerHTML = `<input type="checkbox" id="admin-check-especial"> <strong>Disponibilizar ESPECIAL DO DIA Hoje (R$ 33,00)</strong>`;
+      
+      parent.insertBefore(labelCheckE, parent.firstChild);
+      checkEspecialAdmin = document.getElementById("admin-check-especial");
+    }
+    checkEspecialAdmin.checked = cardapioDia.especialAtivo !== false;
+
     let selectEspecialAdmin = document.getElementById("admin-select-especial");
     if (!selectEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");
@@ -1099,6 +1151,12 @@ function salvarDadosAdmin(event) {
 
   const checkComboP = document.getElementById("admin-check-combop");
   cardapioDia.comboPanquecaAtivo = checkComboP ? checkComboP.checked : true;
+
+  const checkSugestao = document.getElementById("admin-check-sugestao");
+  cardapioDia.sugestaoAtiva = checkSugestao ? checkSugestao.checked : true;
+
+  const checkEspecial = document.getElementById("admin-check-especial");
+  cardapioDia.especialAtivo = checkEspecial ? checkEspecial.checked : true;
 
   cardapioDia.feijoadaAtiva = document.getElementById("admin-check-feijoada").checked;
   cardapioDia.saladaAtiva = document.getElementById("admin-check-salada").checked;
