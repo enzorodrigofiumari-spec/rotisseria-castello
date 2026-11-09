@@ -86,7 +86,7 @@ const BANCO_ESPECIAIS = [
   { nome: "Contra Filé c/ Ovo", desc: "2 Bifes Contra Filé c/ 1 ovo frito em cima + Arroz de Forno (sem molho) + Batata Palha", img: "img/contra-file-ovo.png" },
   { nome: "Tilápia à Parmegiana", desc: "2 pedaços de Tilápia à Parmegiana + Arroz Branco + Batata Frita", img: "img/tilapia-parmegiana.png" },
   { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" },
-  { nome: "Virado a Paulista", desc: "", img: "" }
+  { nome: "Virado a Paulista", desc: "Virado à Paulista + Arroz + Feijão + Ovo + Couve + Bisteca", img: "img/virado-paulista.png" }
 ];
 
 // BANCO DE DADOS COMPLETO E ORGANIZADO COM OS NOVOS ITENS DA SEMANA
@@ -217,7 +217,7 @@ const CARDAPIO_DEFAULT = {
 let cardapioDia = { ...CARDAPIO_DEFAULT };
 let carrinho = [];
 let marmitaEmSelecao = null;
-let panquecaItemTemp = null; // Armazena dados temporários da panqueca para o modal
+let panquecaItemTemp = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   carregarDados();
@@ -332,7 +332,7 @@ function atualizarInterface() {
     boxFit.style.display = "none";
   }
 
-  // CARD FIXO DO COMBO DE PANQUECAS (R$ 30,00)
+  // CARD FIXO DO COMBO DE PANQUECAS (R$ 30,00) - COM IMAGEM
   let boxComboPanqueca = document.getElementById("card-combo-panqueca");
   if (cardapioDia.comboPanquecaAtivo !== false) {
     if (!boxComboPanqueca) {
@@ -350,6 +350,7 @@ function atualizarInterface() {
     if (boxComboPanqueca) {
       boxComboPanqueca.style.display = "block";
       boxComboPanqueca.innerHTML = `
+        <img src="img/combo-de-panqueca.png" onerror="this.style.display='none'" alt="Combo de Panquecas" class="foto-prato">
         <div class="card-body">
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div>
@@ -1002,6 +1003,7 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
+    // SELEÇÃO DO ESPECIAL DO DIA (PREENCHE DESCRIÇÃO E CAMINHO DA FOTO AUTOMATICAMENTE)
     let selectEspecialAdmin = document.getElementById("admin-select-especial");
     if (!selectEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");
