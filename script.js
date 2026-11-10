@@ -270,14 +270,23 @@ function configurarOpcaoPagamentoConta() {
 function alternarExibicaoEndereco() {
   const selectEntrega = document.getElementById("cliente-bairro");
   const inputEndereco = document.getElementById("cliente-endereco");
+  const inputCep = document.getElementById("cliente-cep");
+  
   const grupoEndereco = inputEndereco ? inputEndereco.closest(".form-group") : null;
+  const grupoCep = inputCep ? inputCep.closest(".form-group") : null;
 
   if (selectEntrega.value === "Retirada") {
     if (grupoEndereco) grupoEndereco.style.display = "none";
-    inputEndereco.removeAttribute("required");
+    if (grupoCep) grupoCep.style.display = "none";
+    
+    if (inputEndereco) inputEndereco.removeAttribute("required");
+    if (inputCep) inputCep.removeAttribute("required");
   } else {
     if (grupoEndereco) grupoEndereco.style.display = "block";
-    inputEndereco.setAttribute("required", "required");
+    if (grupoCep) grupoCep.style.display = "block";
+    
+    if (inputEndereco) inputEndereco.setAttribute("required", "required");
+    if (inputCep) inputCep.setAttribute("required", "required");
   }
   atualizarTotais();
 }
@@ -860,6 +869,8 @@ function finalizarPedido() {
   const selectEntrega = document.getElementById("cliente-bairro");
   const isRetirada = (selectEntrega.value === "Retirada");
   const endereco = isRetirada ? "Retirada no Balcao" : document.getElementById("cliente-endereco").value;
+  const cep = isRetirada ? "" : (document.getElementById("cliente-cep") ? document.getElementById("cliente-cep").value : "");
+  const horarioDesejado = document.getElementById("cliente-horario") ? document.getElementById("cliente-horario").value : "";
   const entregaTexto = isRetirada ? "Retirar no Balcao" : "Entrega a Domicilio";
   const pagamento = document.getElementById("cliente-pagamento").value;
   const campoExtra = document.getElementById("cliente-troco") ? document.getElementById("cliente-troco").value : "";
@@ -869,8 +880,27 @@ function finalizarPedido() {
     return;
   }
 
-  if (!isRetirada && !endereco) {
-    alert("Preencha seu endereco de entrega!");
+  if (!isRetirada && (!endereco || !cep)) {
+    alert("Preencha seu endereço e CEP para entrega!");
+    return;
+  }
+
+  if (!horarioDesejado) {
+    alert("Por favor, selecione o horário desejado para receber ou retirar seu pedido!");
+    return;
+  }
+
+  // VALIDAÇÃO DE HORÁRIO (MÍNIMO 30 MINUTOS A PARTIR DE AGORA)
+  const agora = new Date();
+  const [horasPedidas, minutosPedidos] = horarioDesejado.split(":").map(Number);
+  
+  const tempoPedido = new Date();
+  tempoPedido.setHours(horasPedidas, minutosPedidos, 0, 0);
+
+  const diferencaMinutos = Math.round((tempoPedido - agora) / 60000);
+
+  if (diferencaMinutos < 25) { 
+    alert(`Atenção: Nosso tempo mínimo de preparo e entrega é de 30 a 40 minutos!\n\nSeu pedido foi feito às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}. Por favor, escolha um horário a partir de ${new Date(agora.getTime() + 30*60000).getHours().toString().padStart(2, '0')}:${new Date(agora.getTime() + 30*60000).getMinutes().toString().padStart(2, '0')}.`);
     return;
   }
 
@@ -902,10 +932,14 @@ function finalizarPedido() {
   let msg = `*NOVO PEDIDO - ROTISSERIA CASTELLO*\n\n`;
   msg += `*ITENS DO PEDIDO:*\n${textoItens}`;
   msg += `*Tipo de Pedido:* ${entregaTexto}\n`;
+  msg += `*Horário Desejado:* *${horarioDesejado}* (Prazo est.: 30-40 min)\n`;
   msg += `*TOTAL DO PEDIDO:* *R$ ${subtotal.toFixed(2).replace('.', ',')}*\n\n`;
   msg += `*DADOS DO CLIENTE:*\n`;
   msg += `*Nome:* ${nome}\n`;
-  if (!isRetirada) msg += `*Endereco:* ${endereco}\n`;
+  if (!isRetirada) {
+    msg += `*Endereço:* ${endereco}\n`;
+    msg += `*CEP:* ${cep}\n`;
+  }
   
   if (pagamento === "Marcar na Conta") {
     msg += `*Forma de Pagamento:* Marcar na Conta (Titular: ${campoExtra})\n`;
