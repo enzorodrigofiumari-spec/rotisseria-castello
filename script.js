@@ -1222,3 +1222,53 @@ function salvarDadosAdmin(event) {
       alert("Erro ao salvar na nuvem: " + error.message);
     });
 }
+
+// BUSCA AUTOMÁTICA DE ENDEREÇO VIA CEP
+document.addEventListener("DOMContentLoaded", () => {
+  const inputCep = document.getElementById("cliente-cep");
+  if (inputCep) {
+    inputCep.addEventListener("blur", buscarEnderecoPorCep);
+    inputCep.addEventListener("keyup", (e) => {
+      // Se digitar os 8 números (com ou sem hífen), busca automaticamente
+      const valorLimpo = e.target.value.replace(/\D/g, "");
+      if (valorLimpo.length === 8) {
+        buscarEnderecoPorCep();
+      }
+    });
+  }
+});
+
+function buscarEnderecoPorCep() {
+  const inputCep = document.getElementById("cliente-cep");
+  const inputEndereco = document.getElementById("cliente-endereco");
+  
+  if (!inputCep || !inputEndereco) return;
+
+  const cepLimpo = inputCep.value.replace(/\D/g, "");
+
+  if (cepLimpo.length === 8) {
+    // Feedback visual para o cliente
+    inputEndereco.value = "Buscando endereço...";
+    inputEndereco.disabled = true;
+
+    fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      .then(resposta => resposta.json())
+      .then(dados => {
+        inputEndereco.disabled = false;
+        if (!dados.erro) {
+          // Preenche a rua e o bairro automaticamente
+          inputEndereco.value = `${dados.logradouro}, - ${dados.bairro}`;
+          inputEndereco.focus();
+          // Posiciona o cursor para a pessoa colocar o número
+          inputEndereco.setSelectionRange(dados.logradouro.length, dados.logradouro.length);
+        } else {
+          alert("CEP não encontrado. Por favor, digite seu endereço manualmente.");
+          inputEndereco.value = "";
+        }
+      })
+      .catch(() => {
+        inputEndereco.disabled = false;
+        inputEndereco.value = "";
+      });
+  }
+}
