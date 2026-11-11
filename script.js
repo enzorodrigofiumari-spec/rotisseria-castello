@@ -229,6 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
   atualizarInterface();
   configurarOpcaoPagamentoConta();
   configurarBuscaCep();
+  carregarDadosClienteSalvos(); // <-- PREENCHE AUTOMATICAMENTE OS DADOS SE HOUVER PEDIDO ANTERIOR
+  
   document.getElementById("btn-admin").addEventListener("click", abrirAdmin);
   
   const selectEntrega = document.getElementById("cliente-bairro");
@@ -285,7 +287,7 @@ function buscarEnderecoPorCep() {
         if (!dados.erro) {
           inputRua.value = dados.logradouro || "";
           if (inputBairro) inputBairro.value = dados.bairro || "";
-          if (inputNumero) inputNumero.focus(); // Coloca o cursor direto no campo Número
+          if (inputNumero) inputNumero.focus();
         } else {
           alert("CEP não encontrado. Digite os dados do endereço manualmente.");
           inputRua.value = "";
@@ -296,6 +298,30 @@ function buscarEnderecoPorCep() {
         inputRua.value = "";
         if (inputBairro) inputBairro.value = "";
       });
+  }
+}
+
+// SALVA OS DADOS DO CLIENTE NO NAVEGADOR (LOCALSTORAGE)
+function salvarDadosCliente(nome, cep, rua, numero, complemento, bairro) {
+  const dadosCliente = { nome, cep, rua, numero, complemento, bairro };
+  localStorage.setItem("castello_dados_cliente", JSON.stringify(dadosCliente));
+}
+
+// CARREGA OS DADOS AUTOMATICAMENTE SE JÁ EXISTIREM
+function carregarDadosClienteSalvos() {
+  const dadosSalvos = localStorage.getItem("castello_dados_cliente");
+  if (dadosSalvos) {
+    try {
+      const cliente = JSON.parse(dadosSalvos);
+      if (cliente.nome) document.getElementById("cliente-nome").value = cliente.nome;
+      if (cliente.cep) document.getElementById("cliente-cep").value = cliente.cep;
+      if (cliente.rua) document.getElementById("cliente-rua").value = cliente.rua;
+      if (cliente.numero) document.getElementById("cliente-numero").value = cliente.numero;
+      if (cliente.complemento) document.getElementById("cliente-complemento").value = cliente.complemento;
+      if (cliente.bairro) document.getElementById("cliente-bairro-nome").value = cliente.bairro;
+    } catch (e) {
+      console.log("Erro ao carregar dados salvos:", e);
+    }
   }
 }
 
@@ -959,6 +985,13 @@ function finalizarPedido() {
   if (pagamento === "Marcar na Conta" && !campoExtra) {
     alert("Preencha o nome do titular da conta!");
     return;
+  }
+
+  // SALVA OS DADOS DO CLIENTE NO APARELHO PARA A PRÓXIMA VEZ
+  if (!isRetirada) {
+    salvarDadosCliente(nome, cep, rua, numero, complemento, bairroNome);
+  } else {
+    salvarDadosCliente(nome, "", "", "", "", "");
   }
 
   const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
