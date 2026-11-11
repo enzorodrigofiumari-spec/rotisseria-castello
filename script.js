@@ -140,6 +140,7 @@ const BANCO_OPCOES = {
     "Lombo assado ao molho madeira",
     "Panquecas de frango ou carne",
     "Pernil na panela",
+    "Pernil Assado",
     "Picadinho de frango com mostarda e legumes",
     "Ponta de peito assada ao molho",
     "Quibe assado recheado",
