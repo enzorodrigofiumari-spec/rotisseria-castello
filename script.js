@@ -90,7 +90,7 @@ const BANCO_ESPECIAIS = [
   { nome: "Porpetone Recheado", desc: "Porpeta enrolada com bacon e recheada com requeijão + Arroz branco + Iscas de frango crocante + Brócolis refogado + Batata frita", img: "img/porpetone-recheado.png" }
 ];
 
-// BANCO DE DADOS COMPLETO E ORGANIZADO COM OS NOVOS ITENS DA SEMANA
+// BANCO DE DADOS COMPLETO DE OPÇÕES DE MONTAGEM
 const BANCO_OPCOES = {
   feijoesEspeciais: [
     "Feijao Tropeiro",
@@ -187,7 +187,7 @@ const BANCO_OPCOES = {
   ]
 };
 
-// MARMITAS E CAMINHO DAS FOTOS DA PASTA img/ (FORMATO .PNG)
+// MARMITAS E CAMINHO DAS FOTOS DA PASTA img/
 const MARMITAS_TIPOS = [
   { id: 1, nome: "Marmita Mini (3 divisoes)", tamanho: "500ml", preco: 21.00, maxCarnes: 1, maxGuarnicoes: 1, img: "img/mini.png", fallbackImg: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400" },
   { id: 2, nome: "Marmitex Medio", tamanho: "Redondo 750ml", preco: 25.00, maxCarnes: 1, maxGuarnicoes: 2, img: "img/medio.png", fallbackImg: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400" },
@@ -251,7 +251,7 @@ function carregarDados() {
   });
 }
 
-// BUSCA AUTOMÁTICA DE ENDEREÇO VIA CEP
+// BUSCA AUTOMÁTICA DE ENDEREÇO VIA CEP COM DIVISÃO DE RUA E BAIRRO
 function configurarBuscaCep() {
   const inputCep = document.getElementById("cliente-cep");
   if (inputCep) {
@@ -267,32 +267,34 @@ function configurarBuscaCep() {
 
 function buscarEnderecoPorCep() {
   const inputCep = document.getElementById("cliente-cep");
-  const inputEndereco = document.getElementById("cliente-endereco");
+  const inputRua = document.getElementById("cliente-rua");
+  const inputBairro = document.getElementById("cliente-bairro-nome");
+  const inputNumero = document.getElementById("cliente-numero");
   
-  if (!inputCep || !inputEndereco) return;
+  if (!inputCep || !inputRua) return;
 
   const cepLimpo = inputCep.value.replace(/\D/g, "");
 
   if (cepLimpo.length === 8) {
-    inputEndereco.value = "Buscando endereço...";
+    inputRua.value = "Buscando rua...";
+    if (inputBairro) inputBairro.value = "Buscando bairro...";
 
     fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
       .then(resposta => resposta.json())
       .then(dados => {
         if (!dados.erro) {
-          const enderecoCompleto = `${dados.logradouro}, nº , ${dados.bairro}`;
-          inputEndereco.value = enderecoCompleto;
-          inputEndereco.focus();
-          
-          const posicaoNumero = `${dados.logradouro}, nº `.length;
-          inputEndereco.setSelectionRange(posicaoNumero, posicaoNumero);
+          inputRua.value = dados.logradouro || "";
+          if (inputBairro) inputBairro.value = dados.bairro || "";
+          if (inputNumero) inputNumero.focus(); // Coloca o cursor direto no campo Número
         } else {
-          alert("CEP não encontrado. Por favor, digite seu endereço manualmente.");
-          inputEndereco.value = "";
+          alert("CEP não encontrado. Digite os dados do endereço manualmente.");
+          inputRua.value = "";
+          if (inputBairro) inputBairro.value = "";
         }
       })
       .catch(() => {
-        inputEndereco.value = "";
+        inputRua.value = "";
+        if (inputBairro) inputBairro.value = "";
       });
   }
 }
@@ -316,24 +318,22 @@ function configurarOpcaoPagamentoConta() {
 
 function alternarExibicaoEndereco() {
   const selectEntrega = document.getElementById("cliente-bairro");
-  const inputEndereco = document.getElementById("cliente-endereco");
-  const inputCep = document.getElementById("cliente-cep");
-  
-  const grupoEndereco = inputEndereco ? inputEndereco.closest(".form-group") : null;
-  const grupoCep = inputCep ? inputCep.closest(".form-group") : null;
+  const boxCampos = document.getElementById("box-campos-endereco");
+
+  if (!selectEntrega || !boxCampos) return;
+
+  const camposInput = boxCampos.querySelectorAll("input");
 
   if (selectEntrega.value === "Retirada") {
-    if (grupoEndereco) grupoEndereco.style.display = "none";
-    if (grupoCep) grupoCep.style.display = "none";
-    
-    if (inputEndereco) inputEndereco.removeAttribute("required");
-    if (inputCep) inputCep.removeAttribute("required");
+    boxCampos.style.display = "none";
+    camposInput.forEach(i => i.removeAttribute("required"));
   } else {
-    if (grupoEndereco) grupoEndereco.style.display = "block";
-    if (grupoCep) grupoCep.style.display = "block";
-    
-    if (inputEndereco) inputEndereco.setAttribute("required", "required");
-    if (inputCep) inputCep.setAttribute("required", "required");
+    boxCampos.style.display = "block";
+    camposInput.forEach(i => {
+      if (i.id !== "cliente-complemento") {
+        i.setAttribute("required", "required");
+      }
+    });
   }
   atualizarTotais();
 }
@@ -475,13 +475,13 @@ function abrirModalPanqueca(nomeItem, preco) {
     modalPanqueca.style.left = "0";
     modalPanqueca.style.width = "100%";
     modalPanqueca.style.height = "100%";
-    modalPanqueca.style.backgroundColor = "rgba(0,0,0,0.6)";
-    modalPanqueca.style.zIndex = "9999";
+    modalPanqueca.style.backgroundColor = "rgba(0,0,0,0.75)";
+    modalPanqueca.style.zIndex = "99999";
     modalPanqueca.style.justifyContent = "center";
     modalPanqueca.style.alignItems = "center";
 
     modalPanqueca.innerHTML = `
-      <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; position: relative;">
+      <div style="background: #ffffff !important; color: #333 !important; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; position: relative;">
         <h3 id="titulo-modal-panqueca" style="color: #d9381e; margin-bottom: 10px;">Escolha o Recheio</h3>
         <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Clique na opção desejada para adicionar ao seu pedido:</p>
         
@@ -915,10 +915,15 @@ function finalizarPedido() {
   const nome = document.getElementById("cliente-nome").value;
   const selectEntrega = document.getElementById("cliente-bairro");
   const isRetirada = (selectEntrega.value === "Retirada");
-  const endereco = isRetirada ? "Retirada no Balcao" : document.getElementById("cliente-endereco").value;
-  const cep = isRetirada ? "" : (document.getElementById("cliente-cep") ? document.getElementById("cliente-cep").value : "");
+
+  const cep = isRetirada ? "" : (document.getElementById("cliente-cep")?.value || "");
+  const rua = isRetirada ? "" : (document.getElementById("cliente-rua")?.value || "");
+  const numero = isRetirada ? "" : (document.getElementById("cliente-numero")?.value || "");
+  const complemento = isRetirada ? "" : (document.getElementById("cliente-complemento")?.value || "");
+  const bairroNome = isRetirada ? "" : (document.getElementById("cliente-bairro-nome")?.value || "");
+  
   const horarioDesejado = document.getElementById("cliente-horario") ? document.getElementById("cliente-horario").value : "";
-  const entregaTexto = isRetirada ? "Retirar no Balcao" : "Entrega a Domicilio";
+  const entregaTexto = isRetirada ? "Retirar no Balcão" : "Entrega a Domicílio";
   const pagamento = document.getElementById("cliente-pagamento").value;
   const campoExtra = document.getElementById("cliente-troco") ? document.getElementById("cliente-troco").value : "";
 
@@ -927,8 +932,8 @@ function finalizarPedido() {
     return;
   }
 
-  if (!isRetirada && (!endereco || !cep)) {
-    alert("Preencha seu endereço e CEP para entrega!");
+  if (!isRetirada && (!cep || !rua || !numero || !bairroNome)) {
+    alert("Preencha todos os campos obrigatórios de endereço (CEP, Rua, Número e Bairro)!");
     return;
   }
 
@@ -983,9 +988,11 @@ function finalizarPedido() {
   msg += `*TOTAL DO PEDIDO:* *R$ ${subtotal.toFixed(2).replace('.', ',')}*\n\n`;
   msg += `*DADOS DO CLIENTE:*\n`;
   msg += `*Nome:* ${nome}\n`;
+  
   if (!isRetirada) {
-    msg += `*Endereço:* ${endereco}\n`;
     msg += `*CEP:* ${cep}\n`;
+    msg += `*Endereço:* ${rua}, Nº ${numero}${complemento ? ' (' + complemento + ')' : ''}\n`;
+    msg += `*Bairro:* ${bairroNome}\n`;
   }
   
   if (pagamento === "Marcar na Conta") {

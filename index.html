@@ -121,7 +121,7 @@
         </div>
       </div>
 
-      <!-- FORMULÁRIO DO CLIENTE -->
+      <!-- FORMULÁRIO DO CLIENTE REESTRUTURADO -->
       <form id="form-checkout" onsubmit="event.preventDefault(); finalizarPedido();" style="margin-top: 20px;">
         <h3>📋 Dados para Entrega / Retirada</h3>
         
@@ -138,16 +138,37 @@
           </select>
         </div>
 
-        <!-- 1º CAMPO: CEP -->
-        <div class="form-group" id="group-cep">
-          <label for="cliente-cep">CEP *</label>
-          <input type="text" id="cliente-cep" placeholder="Ex: 14000-000" maxlength="9" required>
-        </div>
+        <!-- ESTRUTURA DE ENDEREÇO ORGANIZADA -->
+        <div id="box-campos-endereco">
+          <!-- 1. CEP NO TOPO PARA BUSCA AUTOMÁTICA -->
+          <div class="form-group" id="group-cep">
+            <label for="cliente-cep">CEP *</label>
+            <input type="text" id="cliente-cep" placeholder="Ex: 14000-000" maxlength="9" required>
+          </div>
 
-        <!-- 2º CAMPO: ENDEREÇO -->
-        <div class="form-group" id="group-endereco">
-          <label for="cliente-endereco">Endereço Completo e Número *</label>
-          <input type="text" id="cliente-endereco" placeholder="Digite o CEP acima para preencher a rua..." required>
+          <!-- 2. ENDEREÇO (RUA / AVENIDA) -->
+          <div class="form-group" id="group-rua">
+            <label for="cliente-rua">Endereço (Rua / Av.) *</label>
+            <input type="text" id="cliente-rua" placeholder="Digite o CEP para buscar ou preencha a rua..." required>
+          </div>
+
+          <!-- 3 & 4. NÚMERO E COMPLEMENTO LADO A LADO -->
+          <div style="display: flex; gap: 10px;" id="group-numero-comp">
+            <div class="form-group" style="flex: 1;">
+              <label for="cliente-numero">Número *</label>
+              <input type="text" id="cliente-numero" placeholder="Ex: 1000" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="cliente-complemento">Complemento (Opcional)</label>
+              <input type="text" id="cliente-complemento" placeholder="Apt, Bloco...">
+            </div>
+          </div>
+
+          <!-- 5. BAIRRO -->
+          <div class="form-group" id="group-bairro-nome">
+            <label for="cliente-bairro-nome">Bairro *</label>
+            <input type="text" id="cliente-bairro-nome" placeholder="Nome do seu bairro" required>
+          </div>
         </div>
 
         <!-- CAMPO HORÁRIO DE ENTREGA / RETIRADA -->
@@ -178,52 +199,52 @@
 
   </main>
 
-  <!-- MODAL DE MONTAGEM DE MARMITA -->
-  <div id="modal-montar" class="modal" style="display: none;">
-    <div class="modal-conteudo">
-      <h3 id="modal-titulo-marmita">Montar Marmita</h3>
-      <p id="modal-regras-marmita" style="font-size:0.85rem; color:#666; margin-bottom:10px;"></p>
+  <!-- MODAL DE MONTAGEM DE MARMITA (FUNDO BRANCO SÓLIDO PROTEGIDO) -->
+  <div id="modal-montar" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 99999; justify-content: center; align-items: center; overflow-y: auto;">
+    <div class="modal-conteudo" style="background: #ffffff !important; color: #333333 !important; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.4); margin: auto;">
+      <h3 id="modal-titulo-marmita" style="color: #d9381e; margin-bottom: 5px;">Montar Marmita</h3>
+      <p id="modal-regras-marmita" style="font-size:0.85rem; color:#666; margin-bottom:15px;"></p>
 
-      <div class="secao-opcao-marmita">
+      <div class="secao-opcao-marmita" style="margin-bottom: 12px;">
         <label><strong>1. Escolha o Feijão:</strong></label>
         <div class="grid-checkboxes"></div>
       </div>
 
-      <div class="secao-opcao-marmita">
+      <div class="secao-opcao-marmita" style="margin-bottom: 12px;">
         <label><strong>2. Escolha o Arroz/Base:</strong></label>
         <div id="box-bases-dia" class="grid-checkboxes"></div>
       </div>
 
-      <div class="secao-opcao-marmita">
+      <div class="secao-opcao-marmita" style="margin-bottom: 12px;">
         <label><strong>3. Escolha a(s) Carne(s):</strong></label>
         <div id="box-carnes-dia" class="grid-checkboxes"></div>
       </div>
 
-      <div class="secao-opcao-marmita">
+      <div class="secao-opcao-marmita" style="margin-bottom: 12px;">
         <label><strong>4. Escolha o(s) Acompanhamento(s):</strong></label>
         <div id="box-guarnicoes-dia" class="grid-checkboxes"></div>
       </div>
 
-      <div class="secao-opcao-marmita">
+      <div class="secao-opcao-marmita" style="margin-bottom: 12px;">
         <label><strong>5. Opção de Salada:</strong></label>
         <div id="box-salada-dia" class="grid-checkboxes"></div>
       </div>
 
       <div class="form-group" style="margin-top: 10px;">
         <label for="obs-marmita">Observações do Prato (opcional):</label>
-        <input type="text" id="obs-marmita" placeholder="Ex: Pouco arroz, maionese à parte, etc.">
+        <input type="text" id="obs-marmita" placeholder="Ex: Pouco arroz, maionese à parte, etc." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
       </div>
 
       <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button onclick="confirmarMontagemMarmita()" class="btn-add" style="flex: 2;">Adicionar ao Carrinho</button>
+        <button onclick="confirmarMontagemMarmita()" class="btn-add" style="flex: 2; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; font-weight: bold;">Adicionar ao Carrinho</button>
         <button onclick="fecharModalMontar()" style="background: #6c757d; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1;">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- PAINEL ADMINISTRATIVO (PAINEL DO DONO) - CORRIGIDO E COM ARRASTO/FUNDO BRANCO SÓLIDO -->
-  <div id="modal-admin" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; overflow-y: auto; padding: 20px 0;">
-    <div class="modal-conteudo modal-admin-largura" style="background: #ffffff; padding: 25px; border-radius: 10px; max-width: 650px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); color: #333333; margin: auto;">
+  <!-- PAINEL ADMINISTRATIVO (PAINEL DO DONO) -->
+  <div id="modal-admin" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 99999; justify-content: center; align-items: center; overflow-y: auto; padding: 20px 0;">
+    <div class="modal-conteudo modal-admin-largura" style="background: #ffffff !important; color: #333333 !important; padding: 25px; border-radius: 10px; max-width: 650px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: auto;">
       <h2 style="color: #d9381e; margin-bottom: 5px;">⚙️ Painel de Controle do Restaurante</h2>
       <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Ajuste o cardápio ativo hoje. Todas as alterações são atualizadas em tempo real!</p>
 
@@ -239,14 +260,12 @@
 
         <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
 
-        <!-- SUGESTÃO DO CHEF -->
         <div class="form-group" style="margin-bottom: 15px;">
           <label for="admin-desc-sugestao"><strong>Texto da Sugestão do Chef (R$ 23,00):</strong></label>
           <input type="text" id="admin-desc-sugestao" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;">
           <input type="text" id="admin-img-sugestao" style="display:none;">
         </div>
 
-        <!-- ESPECIAL DO DIA -->
         <div class="form-group" style="margin-bottom: 15px;">
           <label for="admin-desc-especial"><strong>Descrição do Especial do Dia (R$ 33,00):</strong></label>
           <input type="text" id="admin-desc-especial" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;">
@@ -255,7 +274,6 @@
 
         <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
 
-        <!-- SALADA DO DIA -->
         <div class="form-group" style="margin-bottom: 15px;">
           <label for="admin-desc-salada"><strong>Descrição da Salada do Dia:</strong></label>
           <input type="text" id="admin-desc-salada" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Ex: Alface, Tomate e Maionese">
@@ -263,7 +281,6 @@
 
         <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
 
-        <!-- OPÇÕES DO DIA -->
         <h3 style="font-size: 1rem; color: #d9381e; margin-bottom: 8px;">Bases / Arroz Disponíveis Hoje:</h3>
         <div id="admin-box-bases" class="grid-checkboxes-admin" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 15px;"></div>
 
