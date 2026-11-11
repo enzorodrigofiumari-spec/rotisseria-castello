@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
   atualizarInterface();
   configurarOpcaoPagamentoConta();
   configurarBuscaCep();
-  carregarDadosClienteSalvos(); // <-- PREENCHE AUTOMATICAMENTE OS DADOS SE HOUVER PEDIDO ANTERIOR
+  carregarDadosClienteSalvos();
   
   document.getElementById("btn-admin").addEventListener("click", abrirAdmin);
   
@@ -372,7 +372,6 @@ function atualizarInterface() {
   if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
 
-  // VISIBILIDADE DA SUGESTÃO DO CHEF
   const cardSugestao = document.getElementById("desc-sugestao")?.closest('.card');
   if (cardSugestao) {
     if (cardapioDia.sugestaoAtiva !== false) {
@@ -390,7 +389,6 @@ function atualizarInterface() {
     }
   }
 
-  // VISIBILIDADE DO ESPECIAL DO DIA
   const cardEspecial = document.getElementById("desc-especial")?.closest('.card');
   if (cardEspecial) {
     if (cardapioDia.especialAtivo !== false) {
@@ -400,7 +398,6 @@ function atualizarInterface() {
     }
   }
 
-  // CARD FIXO DA MARMITA FIT
   let boxFit = document.getElementById("card-fit-destaque");
   if (cardapioDia.fitAtiva !== false) {
     if (!boxFit) {
@@ -435,7 +432,6 @@ function atualizarInterface() {
     boxFit.style.display = "none";
   }
 
-  // CARD FIXO DO COMBO DE PANQUECAS (R$ 30,00) - COM IMAGEM
   let boxComboPanqueca = document.getElementById("card-combo-panqueca");
   if (cardapioDia.comboPanquecaAtivo !== false) {
     if (!boxComboPanqueca) {
@@ -481,7 +477,6 @@ function atualizarInterface() {
   }
 }
 
-// CRIA E ABRE O MODAL INTERATIVO COM BOTÕES PARA AS PANQUECAS
 function abrirModalPanqueca(nomeItem, preco) {
   if (cardapioDia.statusLoja !== "Aberto") {
     alert("Desculpe, a loja está fechada no momento!");
@@ -987,14 +982,28 @@ function finalizarPedido() {
     return;
   }
 
-  // SALVA OS DADOS DO CLIENTE NO APARELHO PARA A PRÓXIMA VEZ
+  const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+
+  // 1. SALVA O PEDIDO NA NUVEM (FIREBASE) PARA O RELATÓRIO DO DONO
+  const novoPedido = {
+    id: Date.now(),
+    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    nome: nome,
+    tipo: entregaTexto,
+    horarioDesejado: horarioDesejado,
+    pagamento: pagamento,
+    total: subtotal,
+    itens: carrinho.map(i => `${i.qtd}x ${i.nome}`).join(", ")
+  };
+
+  database.ref("pedidos").push(novoPedido);
+
+  // 2. SALVA OS DADOS DO CLIENTE LOCALMENTE NO APARELHO DELE
   if (!isRetirada) {
     salvarDadosCliente(nome, cep, rua, numero, complemento, bairroNome);
   } else {
     salvarDadosCliente(nome, "", "", "", "", "");
   }
-
-  const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
 
   let textoItens = "";
   carrinho.forEach((item, i) => {
@@ -1115,7 +1124,6 @@ function abrirAdmin() {
     checkSaladaAdmin.checked = cardapioDia.saladaAtiva !== false;
     document.getElementById("admin-desc-salada").value = cardapioDia.saladaDiaDesc || "";
 
-    // CHECKBOX SUGESTÃO DO CHEF
     let checkSugestaoAdmin = document.getElementById("admin-check-sugestao");
     if (!checkSugestaoAdmin) {
       const campoSugestao = document.getElementById("admin-desc-sugestao");
@@ -1161,7 +1169,6 @@ function abrirAdmin() {
     document.getElementById("admin-desc-sugestao").value = cardapioDia.sugestaoChef;
     document.getElementById("admin-img-sugestao").value = cardapioDia.sugestaoImg || "";
 
-    // CHECKBOX ESPECIAL DO DIA
     let checkEspecialAdmin = document.getElementById("admin-check-especial");
     if (!checkEspecialAdmin) {
       const campoEspecial = document.getElementById("admin-desc-especial");
@@ -1250,6 +1257,7 @@ function abrirAdmin() {
       boxGuarnicoes.innerHTML += `<label class="check-item"><input type="checkbox" name="adm-guarnicao" value="${idx}" ${checked}> ${g}</label>`;
     });
 
+    mudarAbaAdmin('config'); // Abre na aba de configurações por padrão
     document.getElementById("modal-admin").style.display = "flex";
   } else if (senha !== null) {
     alert("Senha incorreta!");
@@ -1308,4 +1316,79 @@ function salvarDadosAdmin(event) {
     .catch((error) => {
       alert("Erro ao salvar na nuvem: " + error.message);
     });
+}
+
+// NAVEGAÇÃO ENTRE ABAS NO PAINEL DO DONO
+function mudarAbaAdmin(aba) {
+  const divConfig = document.getElementById("aba-admin-config");
+  const divRelatorio = document.getElementById("aba-admin-relatorio");
+  const btnConfig = document.getElementById("btn-aba-config");
+  const btnRelatorio = document.getElementById("btn-aba-relatorio");
+
+  if (aba === 'config') {
+    divConfig.style.display = "block";
+    divRelatorio.style.display = "none";
+    btnConfig.style.background = "#d9381e";
+    btnRelatorio.style.background = "#6c757d";
+  } else {
+    divConfig.style.display = "none";
+    divRelatorio.style.display = "block";
+    btnConfig.style.background = "#6c757d";
+    btnRelatorio.style.background = "#28a745";
+    carregarRelatorioVendas(); // Busca os dados do Firebase ao clicar
+  }
+}
+
+// BUSCA E CALCULA O RELATÓRIO DE VENDAS NO FIREBASE
+function carregarRelatorioVendas() {
+  database.ref("pedidos").once("value", (snapshot) => {
+    const pedidosObj = snapshot.val();
+    const containerLista = document.getElementById("lista-historico-pedidos");
+
+    if (!pedidosObj) {
+      document.getElementById("dash-faturamento").innerText = "R$ 0,00";
+      document.getElementById("dash-total-pedidos").innerText = "0";
+      document.getElementById("dash-ticket-medio").innerText = "R$ 0,00";
+      containerLista.innerHTML = `<p style="text-align: center; color: #888; padding: 20px 0;">Nenhum pedido registrado hoje.</p>`;
+      return;
+    }
+
+    const listaPedidos = Object.values(pedidosObj).reverse();
+    let totalFaturado = 0;
+    let qtdPedidos = listaPedidos.length;
+
+    containerLista.innerHTML = "";
+
+    listaPedidos.forEach(p => {
+      totalFaturado += p.total;
+      
+      containerLista.innerHTML += `
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #28a745; padding: 10px; border-radius: 6px; margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+            <strong style="color: #333;">⏰ ${p.dataHora} - ${p.nome}</strong>
+            <span style="background:#28a745; color:white; padding: 2px 6px; border-radius:4px; font-weight:bold; font-size:0.85rem;">R$ ${p.total.toFixed(2).replace('.', ',')}</span>
+          </div>
+          <small style="display:block; color:#666;">📦 ${p.itens}</small>
+          <small style="display:block; color:#888; margin-top:2px;">🛵 ${p.tipo} | 💳 ${p.pagamento} | 🕒 Entregar às: ${p.horarioDesejado}</small>
+        </div>
+      `;
+    });
+
+    const ticketMedio = qtdPedidos > 0 ? (totalFaturado / qtdPedidos) : 0;
+
+    document.getElementById("dash-faturamento").innerText = `R$ ${totalFaturado.toFixed(2).replace('.', ',')}`;
+    document.getElementById("dash-total-pedidos").innerText = qtdPedidos;
+    document.getElementById("dash-ticket-medio").innerText = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
+  });
+}
+
+// ZERA O HISTÓRICO DE PEDIDOS NO FIREBASE
+function limparHistoricoPedidos() {
+  if (confirm("Tem certeza que deseja zerar o relatório de vendas do dia? Essa ação não pode ser desfeita.")) {
+    database.ref("pedidos").remove()
+      .then(() => {
+        carregarRelatorioVendas();
+        alert("Histórico zerado com sucesso!");
+      });
+  }
 }
