@@ -105,6 +105,7 @@ const BANCO_OPCOES = {
   carnes: [
     "Almondegas suinas ao molho barbecue",
     "Bife acebolado",
+    "Bife bovino a parmegiana (+ R$ 4,00)",
     "Bife de pernil acebolado",
     "Bisteca suina acebolada",
     "Bolo de carne moida a parmegiana",
@@ -816,6 +817,13 @@ function confirmarMontagemMarmita() {
   } else if (opcaoSalada.includes("+ R$ 4,00")) {
     precoFinalMarmita += 4.00;
   }
+
+  // ADICIONE ESTE BLOCO PARA SOMAR R$ 4,00 SE ESCOLHER O BIFE À PARMEGIANA
+  carnesSelec.forEach(carne => {
+    if (carne.includes("+ R$ 4,00")) {
+      precoFinalMarmita += 4.00;
+    }
+  });
 
   const itemPronto = {
     nome: isFeijoada ? `${marmitaEmSelecao.nome} (Feijoada Completa)` : marmitaEmSelecao.nome,
