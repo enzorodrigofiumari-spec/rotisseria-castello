@@ -417,6 +417,7 @@ function atualizarInterface() {
     if (boxFit) {
       boxFit.style.display = "block";
       boxFit.innerHTML = `
+        <img src="img/fit.png" onerror="this.style.display='none'" alt="Marmitinha Fit" class="foto-prato">
         <div class="card-body">
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div>
