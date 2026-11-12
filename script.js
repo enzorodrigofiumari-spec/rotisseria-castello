@@ -141,7 +141,6 @@ const BANCO_OPCOES = {
     "Lombo assado ao molho madeira",
     "Panquecas de frango ou carne",
     "Pernil na panela",
-    "Pernil Assado",
     "Picadinho de frango com mostarda e legumes",
     "Ponta de peito assada ao molho",
     "Quibe assado recheado",
@@ -215,7 +214,7 @@ const CARDAPIO_DEFAULT = {
   especialImg: "img/contra-file-parmegiana.png",
   feijoesEspeciaisAtivos: [0, 1],
   basesAtivas: [0, 1],
-  carnesAtivas: [1, 10, 16],
+  carnesAtivas: [1, 11, 17],
   guarnicoesAtivas: [5, 13, 16]
 };
 
@@ -223,6 +222,7 @@ let cardapioDia = { ...CARDAPIO_DEFAULT };
 let carrinho = [];
 let marmitaEmSelecao = null;
 let panquecaItemTemp = null;
+let todosPedidosCache = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   carregarDados();
@@ -255,7 +255,6 @@ function carregarDados() {
   });
 }
 
-// BUSCA AUTOMÁTICA DE ENDEREÇO VIA CEP COM DIVISÃO DE RUA E BAIRRO
 function configurarBuscaCep() {
   const inputCep = document.getElementById("cliente-cep");
   if (inputCep) {
@@ -303,13 +302,11 @@ function buscarEnderecoPorCep() {
   }
 }
 
-// SALVA OS DADOS DO CLIENTE NO NAVEGADOR (LOCALSTORAGE)
 function salvarDadosCliente(nome, cep, rua, numero, complemento, bairro) {
   const dadosCliente = { nome, cep, rua, numero, complemento, bairro };
   localStorage.setItem("castello_dados_cliente", JSON.stringify(dadosCliente));
 }
 
-// CARREGA OS DADOS AUTOMATICAMENTE SE JÁ EXISTIREM
 function carregarDadosClienteSalvos() {
   const dadosSalvos = localStorage.getItem("castello_dados_cliente");
   if (dadosSalvos) {
@@ -819,7 +816,7 @@ function confirmarMontagemMarmita() {
     precoFinalMarmita += 4.00;
   }
 
-  // ADICIONE ESTE BLOCO PARA SOMAR R$ 4,00 SE ESCOLHER O BIFE À PARMEGIANA
+  // SOMA ADICIONAL DE R$ 4,00 PARA BIFE BOVINO À PARMEGIANA
   carnesSelec.forEach(carne => {
     if (carne.includes("+ R$ 4,00")) {
       precoFinalMarmita += 4.00;
@@ -973,7 +970,6 @@ function finalizarPedido() {
     return;
   }
 
-  // VALIDAÇÃO DE HORÁRIO (MÍNIMO 30 MINUTOS A PARTIR DE AGORA)
   const agora = new Date();
   const [horasPedidas, minutosPedidos] = horarioDesejado.split(":").map(Number);
   
@@ -994,19 +990,29 @@ function finalizarPedido() {
 
   const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
 
-  // 1. SALVA O PEDIDO NA NUVEM (FIREBASE) PARA O RELATÓRIO DO DONO
+  // 1. MONTA O OBJETO DO PEDIDO PARA O RELATÓRIO E IMPRESSÃO
   const novoPedido = {
     id: Date.now(),
     dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     nome: nome,
     tipo: entregaTexto,
+    enderecoCompleto: isRetirada ? "Retirada no Balcão" : `${rua}, Nº ${numero}${complemento ? ' (' + complemento + ')' : ''} - Bairro ${bairroNome}`,
     horarioDesejado: horarioDesejado,
-    pagamento: pagamento,
+    pagamento: pagamento + (campoExtra ? ` (${campoExtra})` : ""),
     total: subtotal,
-    itens: carrinho.map(i => `${i.qtd}x ${i.nome}`).join(", ")
+    impresso: false,
+    itensDetalhados: carrinho.map(item => {
+      let det = item.nome;
+      if (item.detalhes) {
+        det += ` | ${item.detalhes.feijao} | ${item.detalhes.base}`;
+        if (item.detalhes.carnes?.length) det += ` | Carnes: ${item.detalhes.carnes.join(", ")}`;
+        if (item.detalhes.guarnicoes?.length) det += ` | Acomp: ${item.detalhes.guarnicoes.join(", ")}`;
+        if (item.detalhes.salada) det += ` | Salada: ${item.detalhes.salada}`;
+        if (item.detalhes.obs) det += ` | Obs: ${item.detalhes.obs}`;
+      }
+      return det;
+    })
   };
-
-  database.ref("pedidos").push(novoPedido);
 
   // 2. SALVA OS DADOS DO CLIENTE LOCALMENTE NO APARELHO DELE
   if (!isRetirada) {
@@ -1056,7 +1062,17 @@ function finalizarPedido() {
   if (pagamento === "Dinheiro" && campoExtra) msg += `*Troco para:* ${campoExtra}\n`;
   if (pagamento === "Pix") msg += `\n*Chave Pix (CNPJ):* ${CONFIG.chavePix}\n`;
 
-  window.open(`https://wa.me/${CONFIG.telefoneWhatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+  // 3. GRAVA NO FIREBASE PRIMEIRO E SÓ ABRE O WHATSAPP DEPOIS QUE CONFIRMAR
+  const urlWhatsapp = `https://wa.me/${CONFIG.telefoneWhatsapp}?text=${encodeURIComponent(msg)}`;
+  
+  database.ref("pedidos").push(novoPedido)
+    .then(() => {
+      window.location.href = urlWhatsapp;
+    })
+    .catch((erro) => {
+      console.error("Erro ao salvar no relatório:", erro);
+      window.location.href = urlWhatsapp;
+    });
 }
 
 function abrirAdmin() {
@@ -1267,7 +1283,7 @@ function abrirAdmin() {
       boxGuarnicoes.innerHTML += `<label class="check-item"><input type="checkbox" name="adm-guarnicao" value="${idx}" ${checked}> ${g}</label>`;
     });
 
-    mudarAbaAdmin('config'); // Abre na aba de configurações por padrão
+    mudarAbaAdmin('config');
     document.getElementById("modal-admin").style.display = "flex";
   } else if (senha !== null) {
     alert("Senha incorreta!");
@@ -1278,7 +1294,6 @@ function fecharAdmin() {
   document.getElementById("modal-admin").style.display = "none";
 }
 
-// SALVA NA NUVEM PARA TODOS OS DISPOSITIVOS SIMULTANEAMENTE
 function salvarDadosAdmin(event) {
   event.preventDefault();
 
@@ -1328,7 +1343,6 @@ function salvarDadosAdmin(event) {
     });
 }
 
-// NAVEGAÇÃO ENTRE ABAS NO PAINEL DO DONO
 function mudarAbaAdmin(aba) {
   const divConfig = document.getElementById("aba-admin-config");
   const divRelatorio = document.getElementById("aba-admin-relatorio");
@@ -1345,13 +1359,13 @@ function mudarAbaAdmin(aba) {
     divRelatorio.style.display = "block";
     btnConfig.style.background = "#6c757d";
     btnRelatorio.style.background = "#28a745";
-    carregarRelatorioVendas(); // Busca os dados do Firebase ao clicar
+    carregarRelatorioVendas();
   }
 }
 
-// BUSCA E CALCULA O RELATÓRIO DE VENDAS NO FIREBASE
+// BUSCA E CARREGA O RELATÓRIO COM STATUS DE IMPRESSÃO TRAVADO
 function carregarRelatorioVendas() {
-  database.ref("pedidos").once("value", (snapshot) => {
+  database.ref("pedidos").on("value", (snapshot) => {
     const pedidosObj = snapshot.val();
     const containerLista = document.getElementById("lista-historico-pedidos");
 
@@ -1363,23 +1377,36 @@ function carregarRelatorioVendas() {
       return;
     }
 
-    const listaPedidos = Object.values(pedidosObj).reverse();
+    todosPedidosCache = pedidosObj;
+    const chaves = Object.keys(pedidosObj).reverse();
     let totalFaturado = 0;
-    let qtdPedidos = listaPedidos.length;
+    let qtdPedidos = chaves.length;
 
     containerLista.innerHTML = "";
 
-    listaPedidos.forEach(p => {
+    chaves.forEach(key => {
+      const p = pedidosObj[key];
       totalFaturado += p.total;
       
+      const jaImpresso = p.impresso === true;
+      const btnStatusImprimir = jaImpresso 
+        ? `<button disabled style="background:#6c757d; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:not-allowed;">✅ IMPRESSO</button>`
+        : `<button onclick="imprimirComandaPedido('${key}')" style="background:#28a745; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ Imprimir Pedido</button>`;
+
+      const itensStr = p.itensDetalhados ? p.itensDetalhados.join("<br>• ") : p.itens;
+
       containerLista.innerHTML += `
-        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #28a745; padding: 10px; border-radius: 6px; margin-bottom: 8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-            <strong style="color: #333;">⏰ ${p.dataHora} - ${p.nome}</strong>
-            <span style="background:#28a745; color:white; padding: 2px 6px; border-radius:4px; font-weight:bold; font-size:0.85rem;">R$ ${p.total.toFixed(2).replace('.', ',')}</span>
+        <div style="background: ${jaImpresso ? '#f1f1f1' : '#ffffff'}; border: 1px solid #ddd; border-left: 5px solid ${jaImpresso ? '#6c757d' : '#28a745'}; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+            <strong style="color: #333; font-size: 1rem;">⏰ ${p.dataHora} - ${p.nome}</strong>
+            <span style="background:#28a745; color:white; padding: 3px 8px; border-radius:4px; font-weight:bold;">R$ ${p.total.toFixed(2).replace('.', ',')}</span>
           </div>
-          <small style="display:block; color:#666;">📦 ${p.itens}</small>
-          <small style="display:block; color:#888; margin-top:2px;">🛵 ${p.tipo} | 💳 ${p.pagamento} | 🕒 Entregar às: ${p.horarioDesejado}</small>
+          <small style="display:block; color:#444; font-size: 0.85rem; margin-bottom: 4px;">• ${itensStr}</small>
+          <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${p.tipo} | 💳 ${p.pagamento} | 🕒 Entregar às: <strong>${p.horarioDesejado}</strong></small>
+          ${p.enderecoCompleto ? `<small style="display:block; color:#666; margin-bottom: 8px;">📍 ${p.enderecoCompleto}</small>` : ''}
+          <div style="text-align: right; margin-top: 5px;">
+            ${btnStatusImprimir}
+          </div>
         </div>
       `;
     });
@@ -1392,7 +1419,50 @@ function carregarRelatorioVendas() {
   });
 }
 
-// ZERA O HISTÓRICO DE PEDIDOS NO FIREBASE
+// IMPRIME A COMANDA DA COZINHA E MARCA O STATUS 'IMPRESSO' NO FIREBASE
+function imprimirComandaPedido(key) {
+  const p = todosPedidosCache[key];
+  if (!p) return;
+
+  const areaImp = document.getElementById("area-impressao-comanda");
+  
+  let htmlComanda = `
+    <div style="font-family: monospace; font-size: 12pt; width: 100%; max-width: 300px; padding: 10px;">
+      <h2 style="text-align:center; font-size: 14pt; margin-bottom: 4px;">ROTISSERIA CASTELLO</h2>
+      <p style="text-align:center; margin-bottom: 8px;">--------------------------------</p>
+      <p><strong>HORÁRIO ENTREGA: ${p.horarioDesejado}</strong></p>
+      <p>PEDIDO EM: ${p.dataHora}</p>
+      <p>CLIENTE: ${p.nome}</p>
+      <p>TIPO: ${p.tipo}</p>
+      ${p.enderecoCompleto ? `<p>END: ${p.enderecoCompleto}</p>` : ''}
+      <p>--------------------------------</p>
+      <p><strong>ITENS:</strong></p>
+  `;
+
+  if (p.itensDetalhados) {
+    p.itensDetalhados.forEach(it => {
+      htmlComanda += `<p style="margin-left: 5px;">- ${it}</p>`;
+    });
+  } else {
+    htmlComanda += `<p style="margin-left: 5px;">- ${p.itens}</p>`;
+  }
+
+  htmlComanda += `
+      <p>--------------------------------</p>
+      <p>PAGAMENTO: ${p.pagamento}</p>
+      <p style="font-size: 14pt;"><strong>TOTAL: R$ ${p.total.toFixed(2).replace('.', ',')}</strong></p>
+      <p style="text-align:center; margin-top: 10px;">--------------------------------</p>
+    </div>
+  `;
+
+  areaImp.innerHTML = htmlComanda;
+
+  database.ref(`pedidos/${key}`).update({ impresso: true })
+    .then(() => {
+      window.print();
+    });
+}
+
 function limparHistoricoPedidos() {
   if (confirm("Tem certeza que deseja zerar o relatório de vendas do dia? Essa ação não pode ser desfeita.")) {
     database.ref("pedidos").remove()
