@@ -105,6 +105,7 @@ const BANCO_OPCOES = {
   carnes: [
     "Almondegas suinas ao molho barbecue",
     "Bife acebolado",
+    "Bife bovino a milanesa (+ R$ 3,00)",
     "Bife bovino a parmegiana (+ R$ 4,00)",
     "Bife de pernil acebolado",
     "Bisteca suina acebolada",
@@ -820,6 +821,9 @@ function confirmarMontagemMarmita() {
   carnesSelec.forEach(carne => {
     if (carne.includes("+ R$ 4,00")) {
       precoFinalMarmita += 4.00;
+    }
+    if (carne.includes("+ R$ 3,00")) {
+      precoFinalMarmita += 3.00;
     }
   });
 
