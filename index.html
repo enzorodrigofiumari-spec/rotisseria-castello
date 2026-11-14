@@ -308,9 +308,12 @@
 
       <!-- ABA 2: RELATÓRIO DE VENDAS E HISTÓRICO DE PEDIDOS -->
       <div id="aba-admin-relatorio" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h2 style="color: #28a745; margin: 0;">📊 Relatório de Vendas do Dia</h2>
-          <button onclick="limparHistoricoPedidos()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">🗑️ Zerar Relatório</button>
+        <h2 style="color: #28a745; margin: 0 0 10px 0;">📊 Relatório de Vendas</h2>
+        <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+          <button type="button" onclick="mudarDiaRelatorio(-1)" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">◀</button>
+          <input type="date" id="relatorio-data" onchange="carregarRelatorioVendas()" style="padding: 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem;">
+          <button type="button" onclick="mudarDiaRelatorio(1)" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">▶</button>
+          <button type="button" onclick="irParaHojeRelatorio()" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">Hoje</button>
         </div>
 
         <!-- DASHBOARD COM MÉTRICAS -->
@@ -340,6 +343,9 @@
 
     </div>
   </div>
+
+  <!-- ÁREA OCULTA: só aparece na hora de imprimir a comanda da cozinha -->
+  <div id="area-impressao-comanda"></div>
 
   <script src="script.js"></script>
 </body>

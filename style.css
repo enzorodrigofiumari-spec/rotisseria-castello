@@ -375,3 +375,39 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 8px;
 }
+
+/* ==========================================================================
+   6. IMPRESSÃO DA COMANDA DA COZINHA
+   ========================================================================== */
+#area-impressao-comanda {
+  display: none;
+}
+
+@media print {
+  /* Bobina de 80mm (impressora térmica Bematech MP-4200 TH) */
+  @page {
+    size: 80mm auto;
+    margin: 2mm;
+  }
+
+  /* Esconde TODO o site e mostra apenas a comanda */
+  body > *:not(#area-impressao-comanda) {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+
+  #area-impressao-comanda {
+    display: block !important;
+    width: 72mm;
+    color: #000000;
+  }
+
+  #area-impressao-comanda p {
+    margin: 2px 0;
+    line-height: 1.3;
+  }
+}

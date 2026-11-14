@@ -996,8 +996,9 @@ function finalizarPedido() {
 
   // 1. MONTA O OBJETO DO PEDIDO PARA O RELATÓRIO E IMPRESSÃO
   const novoPedido = {
-    id: Date.now(),
-    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    id: agoraCorrigido().getTime(),
+    data: dataLocalISO(agoraCorrigido()),
+    dataHora: agoraCorrigido().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     nome: nome,
     tipo: entregaTexto,
     enderecoCompleto: isRetirada ? "Retirada no Balcão" : `${rua}, Nº ${numero}${complemento ? ' (' + complemento + ')' : ''} - Bairro ${bairroNome}`,
@@ -1080,8 +1081,10 @@ function finalizarPedido() {
 }
 
 function abrirAdmin() {
+  prepararAudio(); // precisa rodar no clique do botão para o navegador liberar o som
   const senha = prompt("Senha do Painel:");
   if (senha === CONFIG.senhaAdmin) {
+    ativarAlertaPedidos();
     document.getElementById("admin-status").value = cardapioDia.statusLoja;
 
     let checkFitAdmin = document.getElementById("admin-check-fit");
@@ -1367,47 +1370,108 @@ function mudarAbaAdmin(aba) {
   }
 }
 
-// BUSCA E CARREGA O RELATÓRIO COM STATUS DE IMPRESSÃO TRAVADO
+// ==========================================================================
+// RELATÓRIO POR DIA + IMPRESSÃO DE COMANDAS
+// ==========================================================================
+let refRelatorioAtual = null;
+
+// Corrige o relógio do celular do cliente usando a hora do servidor do Firebase,
+// para o pedido cair no dia certo mesmo se o celular estiver com a hora errada
+let offsetRelogioServidor = 0;
+database.ref(".info/serverTimeOffset").on("value", (s) => {
+  offsetRelogioServidor = Number(s.val()) || 0;
+});
+
+function agoraCorrigido() {
+  return new Date(Date.now() + offsetRelogioServidor);
+}
+
+// Data local no formato AAAA-MM-DD
+function dataLocalISO(d) {
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+// Evita que texto digitado pelo cliente (nome, obs) quebre ou injete HTML no painel
+function esc(texto) {
+  return String(texto ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function formatarReais(valor) {
+  return `R$ ${(Number(valor) || 0).toFixed(2).replace(".", ",")}`;
+}
+
+function mudarDiaRelatorio(delta) {
+  const input = document.getElementById("relatorio-data");
+  const [a, m, d] = (input.value || dataLocalISO(new Date())).split("-").map(Number);
+  input.value = dataLocalISO(new Date(a, m - 1, d + delta));
+  carregarRelatorioVendas();
+}
+
+function irParaHojeRelatorio() {
+  document.getElementById("relatorio-data").value = dataLocalISO(new Date());
+  carregarRelatorioVendas();
+}
+
+// BUSCA SÓ OS PEDIDOS DO DIA ESCOLHIDO (padrão: hoje), EM TEMPO REAL
 function carregarRelatorioVendas() {
-  database.ref("pedidos").on("value", (snapshot) => {
-    const pedidosObj = snapshot.val();
+  const input = document.getElementById("relatorio-data");
+  if (!input.value) input.value = dataLocalISO(new Date());
+
+  const [a, m, d] = input.value.split("-").map(Number);
+  const inicioDia = new Date(a, m - 1, d, 0, 0, 0, 0).getTime();
+  const fimDia = new Date(a, m - 1, d + 1, 0, 0, 0, 0).getTime() - 1;
+  const ehHoje = input.value === dataLocalISO(new Date());
+
+  // Evita acumular vários "ouvintes" a cada vez que a aba é aberta ou o dia muda
+  if (refRelatorioAtual) refRelatorioAtual.off();
+
+  // "id" é o horário (Date.now) em que o pedido foi feito, então também funciona nos pedidos antigos
+  refRelatorioAtual = database.ref("pedidos").orderByChild("id").startAt(inicioDia).endAt(fimDia);
+
+  refRelatorioAtual.on("value", (snapshot) => {
     const containerLista = document.getElementById("lista-historico-pedidos");
+    const lista = [];
+    todosPedidosCache = {};
 
-    if (!pedidosObj) {
-      document.getElementById("dash-faturamento").innerText = "R$ 0,00";
-      document.getElementById("dash-total-pedidos").innerText = "0";
-      document.getElementById("dash-ticket-medio").innerText = "R$ 0,00";
-      containerLista.innerHTML = `<p style="text-align: center; color: #888; padding: 20px 0;">Nenhum pedido registrado hoje.</p>`;
-      return;
-    }
+    snapshot.forEach((filho) => {
+      todosPedidosCache[filho.key] = filho.val();
+      lista.push({ key: filho.key, p: filho.val() });
+    });
+    lista.reverse(); // mais recente primeiro
 
-    todosPedidosCache = pedidosObj;
-    const chaves = Object.keys(pedidosObj).reverse();
     let totalFaturado = 0;
-    let qtdPedidos = chaves.length;
-
     containerLista.innerHTML = "";
 
-    chaves.forEach(key => {
-      const p = pedidosObj[key];
-      totalFaturado += p.total;
-      
+    if (lista.length === 0) {
+      containerLista.innerHTML = `<p style="text-align: center; color: #888; padding: 20px 0;">${ehHoje ? "Nenhum pedido registrado hoje até o momento." : "Nenhum pedido registrado neste dia."}</p>`;
+    }
+
+    lista.forEach(({ key, p }) => {
+      totalFaturado += Number(p.total) || 0;
+
       const jaImpresso = p.impresso === true;
-      const btnStatusImprimir = jaImpresso 
-        ? `<button disabled style="background:#6c757d; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:not-allowed;">✅ IMPRESSO</button>`
+      const btnStatusImprimir = jaImpresso
+        ? `<button disabled style="background:#6c757d; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:not-allowed;">✅ IMPRESSO${p.impressoEm ? " às " + esc(p.impressoEm) : ""}</button>`
         : `<button onclick="imprimirComandaPedido('${key}')" style="background:#28a745; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ Imprimir Pedido</button>`;
 
-      const itensStr = p.itensDetalhados ? p.itensDetalhados.join("<br>• ") : p.itens;
+      const itensStr = p.itensDetalhados
+        ? p.itensDetalhados.map(esc).join("<br>• ")
+        : esc(p.itens);
 
       containerLista.innerHTML += `
         <div style="background: ${jaImpresso ? '#f1f1f1' : '#ffffff'}; border: 1px solid #ddd; border-left: 5px solid ${jaImpresso ? '#6c757d' : '#28a745'}; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-            <strong style="color: #333; font-size: 1rem;">⏰ ${p.dataHora} - ${p.nome}</strong>
-            <span style="background:#28a745; color:white; padding: 3px 8px; border-radius:4px; font-weight:bold;">R$ ${p.total.toFixed(2).replace('.', ',')}</span>
+            <strong style="color: #333; font-size: 1rem;">⏰ ${esc(p.dataHora)} - ${esc(p.nome)}</strong>
+            <span style="background:#28a745; color:white; padding: 3px 8px; border-radius:4px; font-weight:bold;">${formatarReais(p.total)}</span>
           </div>
           <small style="display:block; color:#444; font-size: 0.85rem; margin-bottom: 4px;">• ${itensStr}</small>
-          <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${p.tipo} | 💳 ${p.pagamento} | 🕒 Entregar às: <strong>${p.horarioDesejado}</strong></small>
-          ${p.enderecoCompleto ? `<small style="display:block; color:#666; margin-bottom: 8px;">📍 ${p.enderecoCompleto}</small>` : ''}
+          <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${esc(p.tipo)} | 💳 ${esc(p.pagamento)} | 🕒 Entregar às: <strong>${esc(p.horarioDesejado)}</strong></small>
+          ${p.enderecoCompleto ? `<small style="display:block; color:#666; margin-bottom: 8px;">📍 ${esc(p.enderecoCompleto)}</small>` : ''}
           <div style="text-align: right; margin-top: 5px;">
             ${btnStatusImprimir}
           </div>
@@ -1415,64 +1479,250 @@ function carregarRelatorioVendas() {
       `;
     });
 
+    const qtdPedidos = lista.length;
     const ticketMedio = qtdPedidos > 0 ? (totalFaturado / qtdPedidos) : 0;
 
-    document.getElementById("dash-faturamento").innerText = `R$ ${totalFaturado.toFixed(2).replace('.', ',')}`;
+    document.getElementById("dash-faturamento").innerText = formatarReais(totalFaturado);
     document.getElementById("dash-total-pedidos").innerText = qtdPedidos;
-    document.getElementById("dash-ticket-medio").innerText = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
+    document.getElementById("dash-ticket-medio").innerText = formatarReais(ticketMedio);
   });
 }
 
 // IMPRIME A COMANDA DA COZINHA E MARCA O STATUS 'IMPRESSO' NO FIREBASE
 function imprimirComandaPedido(key) {
-  const p = todosPedidosCache[key];
+  const p = todosPedidosCache[key] || pedidosAlerta[key];
   if (!p) return;
 
   const areaImp = document.getElementById("area-impressao-comanda");
-  
+  if (!areaImp) {
+    alert("Área de impressão não encontrada no index.html.");
+    return;
+  }
+
+  const linha = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
+
   let htmlComanda = `
-    <div style="font-family: monospace; font-size: 12pt; width: 100%; max-width: 300px; padding: 10px;">
-      <h2 style="text-align:center; font-size: 14pt; margin-bottom: 4px;">ROTISSERIA CASTELLO</h2>
-      <p style="text-align:center; margin-bottom: 8px;">--------------------------------</p>
-      <p><strong>HORÁRIO ENTREGA: ${p.horarioDesejado}</strong></p>
-      <p>PEDIDO EM: ${p.dataHora}</p>
-      <p>CLIENTE: ${p.nome}</p>
-      <p>TIPO: ${p.tipo}</p>
-      ${p.enderecoCompleto ? `<p>END: ${p.enderecoCompleto}</p>` : ''}
-      <p>--------------------------------</p>
+    <div style="font-family: monospace; font-size: 10pt; width: 100%; padding: 2px;">
+      <h2 style="text-align:center; font-size: 14pt; margin-bottom: 2px;">ROTISSERIA CASTELLO</h2>
+      ${linha}
+      <p style="font-size: 12pt;"><strong>HORÁRIO: ${esc(p.horarioDesejado)}</strong></p>
+      <p>PEDIDO EM: ${esc(p.dataHora)}</p>
+      <p>CLIENTE: ${esc(p.nome)}</p>
+      <p>TIPO: ${esc(p.tipo)}</p>
+      ${p.enderecoCompleto ? `<p>END: ${esc(p.enderecoCompleto)}</p>` : ''}
+      ${linha}
       <p><strong>ITENS:</strong></p>
   `;
 
-  if (p.itensDetalhados) {
-    p.itensDetalhados.forEach(it => {
-      htmlComanda += `<p style="margin-left: 5px;">- ${it}</p>`;
+  const itens = p.itensDetalhados || [p.itens];
+  itens.forEach((it) => {
+    // O 1º trecho é o nome do prato; os demais (feijão, carnes, acomp...) vão em linhas separadas
+    const [nomePrato, ...resto] = String(it).split(" | ");
+    htmlComanda += `<p style="margin-top: 6px;"><strong>- ${esc(nomePrato)}</strong></p>`;
+    resto.forEach((r) => {
+      htmlComanda += `<p style="margin-left: 10px;">${esc(r)}</p>`;
     });
-  } else {
-    htmlComanda += `<p style="margin-left: 5px;">- ${p.itens}</p>`;
-  }
+  });
 
   htmlComanda += `
-      <p>--------------------------------</p>
-      <p>PAGAMENTO: ${p.pagamento}</p>
-      <p style="font-size: 14pt;"><strong>TOTAL: R$ ${p.total.toFixed(2).replace('.', ',')}</strong></p>
-      <p style="text-align:center; margin-top: 10px;">--------------------------------</p>
+      ${linha}
+      <p>PAGAMENTO: ${esc(p.pagamento)}</p>
+      <p style="font-size: 12pt;"><strong>TOTAL: ${formatarReais(p.total)}</strong></p>
+      ${linha}
     </div>
   `;
 
   areaImp.innerHTML = htmlComanda;
 
-  database.ref(`pedidos/${key}`).update({ impresso: true })
-    .then(() => {
+  const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+  // A transação garante que, mesmo com 2 pessoas clicando ao mesmo tempo, só uma imprime
+  database.ref(`pedidos/${key}/impresso`).transaction(
+    (atual) => (atual === true ? undefined : true),
+    (erro, confirmado) => {
+      if (erro) {
+        // Sem conexão com o Firebase: imprime mesmo assim para não travar a cozinha
+        console.error("Erro ao travar impressão:", erro);
+        window.print();
+        return;
+      }
+
+      if (!confirmado) {
+        database.ref(`pedidos/${key}/impressoEm`).once("value").then((s) => {
+          mostrarAvisoImpresso(key, p, s.val());
+          alert(`Este pedido já foi impresso${s.val() ? " às " + s.val() : ""}. Para evitar duplicidade, não foi impresso de novo.`);
+        });
+        return;
+      }
+
+      database.ref(`pedidos/${key}`).update({ impressoEm: hora });
+      mostrarAvisoImpresso(key, p, hora);
       window.print();
-    });
+    }
+  );
 }
 
-function limparHistoricoPedidos() {
-  if (confirm("Tem certeza que deseja zerar o relatório de vendas do dia? Essa ação não pode ser desfeita.")) {
-    database.ref("pedidos").remove()
-      .then(() => {
-        carregarRelatorioVendas();
-        alert("Histórico zerado com sucesso!");
-      });
+// ==========================================================================
+// ALERTA SONORO DE NOVOS PEDIDOS (o dono escolhe se imprime ou não)
+// ==========================================================================
+let audioCtx = null;
+let alertaAtivo = false;
+let pedidosAlerta = {};
+let avisosImpressos = {};
+const timersAvisos = {};
+let intervaloApito = null;
+
+function prepararAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch (e) {
+    console.error("Áudio indisponível:", e);
   }
+}
+
+// Três bipes seguidos, gerados pelo próprio navegador (não precisa de arquivo de som)
+function tocarApito() {
+  if (!audioCtx) return;
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const t0 = audioCtx.currentTime;
+  [[880, 0], [1175, 0.3], [880, 0.6]].forEach(([freq, atraso]) => {
+    const osc = audioCtx.createOscillator();
+    const ganho = audioCtx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    ganho.gain.setValueAtTime(0.0001, t0 + atraso);
+    ganho.gain.exponentialRampToValueAtTime(0.6, t0 + atraso + 0.03);
+    ganho.gain.exponentialRampToValueAtTime(0.0001, t0 + atraso + 0.25);
+    osc.connect(ganho);
+    ganho.connect(audioCtx.destination);
+    osc.start(t0 + atraso);
+    osc.stop(t0 + atraso + 0.27);
+  });
+}
+
+function ativarAlertaPedidos() {
+  if (alertaAtivo) return;
+  alertaAtivo = true;
+
+  // Selo fixo no canto mostrando que este computador está "ouvindo" os pedidos
+  const chip = document.createElement("div");
+  chip.id = "chip-alerta-pedidos";
+  chip.style.cssText = "position:fixed; bottom:10px; left:10px; z-index:9999998; background:#198754; color:#fff; padding:6px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3);";
+  chip.innerHTML = `🔔 Alerta de pedidos ativo <button type="button" onclick="prepararAudio(); tocarApito();" style="margin-left:6px; background:#fff; color:#198754; border:none; border-radius:10px; padding:2px 8px; font-weight:bold; cursor:pointer;">Testar som</button>`;
+  document.body.appendChild(chip);
+
+  // Descobre o último pedido existente e passa a escutar só os que chegarem depois dele
+  database.ref("pedidos").orderByKey().limitToLast(1).once("value").then((snap) => {
+    let ultimaChave = null;
+    snap.forEach((filho) => { ultimaChave = filho.key; });
+
+    let consulta = database.ref("pedidos").orderByKey();
+    if (ultimaChave) consulta = consulta.startAt(ultimaChave);
+
+    consulta.on("child_added", (s) => {
+      if (s.key === ultimaChave) return; // pedido que já existia
+      novoPedidoAlerta(s.key, s.val());
+    });
+
+    // Quando qualquer computador imprime um pedido, aparece o aviso verde de "já impresso"
+    consulta.on("child_changed", (s) => {
+      if (s.val() && s.val().impresso === true) {
+        mostrarAvisoImpresso(s.key, s.val(), s.val().impressoEm);
+      }
+    });
+  }).catch((erro) => {
+    console.error("Erro ao ativar alerta de pedidos:", erro);
+    alertaAtivo = false;
+    chip.remove();
+  });
+}
+
+function novoPedidoAlerta(key, p) {
+  if (!p || p.impresso === true) return;
+  pedidosAlerta[key] = p;
+  renderizarAlertas();
+  tocarApito();
+  atualizarRepeticaoApito();
+}
+
+function removerAlerta(key) {
+  if (!pedidosAlerta[key]) return;
+  delete pedidosAlerta[key];
+  renderizarAlertas();
+  atualizarRepeticaoApito();
+}
+
+// Enquanto houver pedido esperando decisão, repete o apito a cada 6 segundos
+function atualizarRepeticaoApito() {
+  const pendentes = Object.keys(pedidosAlerta).length;
+  if (pendentes > 0 && !intervaloApito) {
+    intervaloApito = setInterval(tocarApito, 6000);
+  } else if (pendentes === 0 && intervaloApito) {
+    clearInterval(intervaloApito);
+    intervaloApito = null;
+  }
+}
+
+function imprimirPedidoDoAlerta(key) {
+  imprimirComandaPedido(key);
+}
+
+// AVISO VERDE: este pedido já foi impresso, não imprimir de novo
+function mostrarAvisoImpresso(key, p, hora) {
+  delete pedidosAlerta[key];
+  const anterior = avisosImpressos[key];
+  avisosImpressos[key] = {
+    nome: p.nome,
+    total: p.total,
+    hora: hora || (anterior && anterior.hora) || null
+  };
+  clearTimeout(timersAvisos[key]);
+  timersAvisos[key] = setTimeout(() => dispensarAvisoImpresso(key), 60000);
+  renderizarAlertas();
+  atualizarRepeticaoApito();
+}
+
+function dispensarAvisoImpresso(key) {
+  clearTimeout(timersAvisos[key]);
+  delete avisosImpressos[key];
+  renderizarAlertas();
+}
+
+function renderizarAlertas() {
+  let container = document.getElementById("alerta-novos-pedidos");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "alerta-novos-pedidos";
+    container.style.cssText = "position:fixed; top:10px; left:10px; right:10px; max-width:420px; margin-left:auto; z-index:9999999; display:flex; flex-direction:column; gap:8px; max-height:90vh; overflow-y:auto;";
+    document.body.appendChild(container);
+  }
+
+  const htmlPendentes = Object.keys(pedidosAlerta).map((key) => {
+    const p = pedidosAlerta[key];
+    const qtdItens = (p.itensDetalhados || []).length;
+    return `
+      <div style="background:#fff3cd; border:2px solid #fd7e14; border-radius:8px; padding:10px; box-shadow:0 4px 14px rgba(0,0,0,0.35); color:#333;">
+        <strong style="display:block;">🔔 Novo pedido! ${esc(p.nome)} - ${formatarReais(p.total)}</strong>
+        <small style="display:block; margin:4px 0 8px;">
+          ${esc(p.tipo)} | 🕒 para as <strong>${esc(p.horarioDesejado)}</strong>${qtdItens ? ` | ${qtdItens} item(ns)` : ""}
+        </small>
+        <div style="display:flex; gap:8px;">
+          <button type="button" onclick="imprimirPedidoDoAlerta('${key}')" style="flex:2; background:#28a745; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">🖨️ Imprimir</button>
+          <button type="button" onclick="removerAlerta('${key}')" style="flex:1; background:#6c757d; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer;">Dispensar</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  const htmlImpressos = Object.keys(avisosImpressos).map((key) => {
+    const a = avisosImpressos[key];
+    return `
+      <div style="background:#d1e7dd; border:2px solid #198754; border-radius:8px; padding:10px; box-shadow:0 4px 14px rgba(0,0,0,0.35); color:#0f5132;">
+        <strong style="display:block;">✅ JÁ IMPRESSO: ${esc(a.nome)} - ${formatarReais(a.total)}${a.hora ? " (às " + esc(a.hora) + ")" : ""}</strong>
+        <small style="display:block; margin:4px 0 8px;">Não precisa imprimir de novo.</small>
+        <button type="button" onclick="dispensarAvisoImpresso('${key}')" style="width:100%; background:#198754; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer;">OK</button>
+      </div>`;
+  }).join("");
+
+  container.innerHTML = htmlPendentes + htmlImpressos;
 }
