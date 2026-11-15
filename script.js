@@ -103,6 +103,195 @@ const BANCO_OPCOES = {
     "Arroz com Brocolis e Queijo"
   ],
   carnes: [
+    "Alcatra ao molho madeira",
+    "Almondegas ao molho",
+    "Almondegas ao molho de tomate",
+    "Almondegas suinas ao molho barbecue",
+    "Bife acebolado",
+    "Bife bovino a milanesa (+ R$ 3,00)",
+    "Bife bovino a parmegiana (+ R$ 4,00)",
+    "Bife de contra file (+ R$ 7,00)",
+    "Bife de pernil acebolado",
+    "Bisteca suina acebolada",
+    "Bolo de carne moida a parmegiana",
+    "Calabresa a portuguesa (calabresa, cebola, palmito, milho e azeitona)",
+    "Calabresa acebolada",
+    "Carne ao molho",
+    "Carne assada fatiada ao molho",
+    "Carne de panela",
+    "Carne de panela com batata",
+    "Carne fatiada ao molho madeira",
+    "Carne moida com azeitonas",
+    "Carne moida com batata",
+    "Carne moida com cenoura",
+    "Carne moida com cenoura e azeitona",
+    "Carne moida com cenouras",
+    "Carne moida com legumes",
+    "Carne moida com pimenta chapeu de padre",
+    "Charuto de repolho",
+    "Copa lombo assado",
+    "Costela bovina na panela",
+    "Costelinha assada com barbecue",
+    "Costelinha suina assada",
+    "Costelinha suina na panela",
+    "Cupim assado ao molho",
+    "Dobradinha",
+    "Escondidinho de frango (com pure de batatas, frango desfiado e requeijao)",
+    "Estrogonofe de carne",
+    "Estrogonofe de frango",
+    "Estrogonofe de frango com batata palha",
+    "Feijoada da Casa",
+    "File de frango a milanesa",
+    "File de frango a parmegiana",
+    "File de frango acebolado",
+    "File de frango ao molho branco de palmito",
+    "File de frango ao molho de queijo",
+    "File de frango ao pizzaiolo (com tomate, oregano e mussarela)",
+    "File de frango com creme de milho",
+    "File de frango grelhado",
+    "File de peixe a milanesa",
+    "File de peixe assado ao molho pesto",
+    "File mignon suino assado com molho madeira",
+    "Fraldinha assada",
+    "Frango a passarinho",
+    "Frango cremoso",
+    "Frango na panela",
+    "Frango refogado ao molho",
+    "Frango xadrez",
+    "Fricasse de frango",
+    "Fricasse de frango com batata palha",
+    "Galinhada",
+    "Hamburguer a pizzaiolo",
+    "Isca de frango com requeijao",
+    "Iscas de carne com tomate e cebola",
+    "Iscas de frango ao molho de queijo",
+    "Iscas de frango com bacon e requeijao",
+    "Iscas de frango com tomate e cebola",
+    "Iscas de frango crocante",
+    "Iscas de frango empanada",
+    "Iscas de pernil a milanesa",
+    "Iscas de pernil com shoyu e pimentoes",
+    "Lagarto ao molho",
+    "Linguica de pernil acebolada",
+    "Linguica fininha frita",
+    "Linguica recheada com vinagrete e queijo",
+    "Linguica toscana acebolada",
+    "Linguica toscana com vinagrete e requeijao",
+    "Linguica toscana recheada com requeijao e vinagrete",
+    "Lombo ao molho barbecue",
+    "Lombo assado",
+    "Lombo assado ao molho madeira",
+    "Ovo frito",
+    "Panquecas de frango ou carne",
+    "Pernil acebolado com molho barbecue",
+    "Pernil assado",
+    "Pernil na panela",
+    "Picadinho de frango com mostarda e legumes",
+    "Ponta de peito ao molho",
+    "Ponta de peito assada",
+    "Ponta de peito assada ao molho",
+    "Porpeta recheada com queijo",
+    "Quibe assado recheado",
+    "Rocambole de carne recheado",
+    "Sobrecoxa de frango assada",
+    "Sobrecoxa desossada recheada",
+    "Steak de frango a parmegiana",
+    "Surpresinha de frango recheada (com presunto e queijo)",
+    "Tiras de carne com tomate e cebola",
+    "Tirinhas de frango crocante"
+  ],
+  guarnicoes: [
+    "Abobrinha com alho frito",
+    "Abobrinha na manteiga com hortela",
+    "Abobrinha no alho",
+    "Abobrinha recheada",
+    "Abobrinha refogada",
+    "Abobrinha refogada com alho",
+    "Acelga refogada",
+    "Acelga refogada com shoyu",
+    "Antepasto de berinjela",
+    "Banana a milanesa",
+    "Banana surpresa (banana enrolada com presunto e mussarela ao molho branco)",
+    "Batata chips",
+    "Batata com cenoura",
+    "Batata com cenoura refogada",
+    "Batata cozida e frita",
+    "Batata cozida na manteiga com bacon",
+    "Batata doce cozida",
+    "Batata doce frita",
+    "Batata frita",
+    "Batata gratinada com bacon",
+    "Batata palha",
+    "Batata rustica (batata cozida, frita e temperada)",
+    "Berinjela a milanesa",
+    "Bolinho de arroz com espinafre",
+    "Bolinho de arroz com legumes",
+    "Brocolis na manteiga",
+    "Cabotia refogada",
+    "Cenoura com Brocolis",
+    "Cenoura refogada",
+    "Cenoura saute",
+    "Chica doida (creme de milho com queijo e bacon)",
+    "Chuchu com molho branco e ricota",
+    "Chuchu com ricota",
+    "Chuchu refogado",
+    "Couve flor a milanesa",
+    "Couve refogada",
+    "Creme de milho",
+    "Croquete de carne",
+    "Escondidinho de salsicha",
+    "Espaguete alho e oleo",
+    "Espaguete ao molho de tomate",
+    "Estrogonofe de berinjela",
+    "Farofa da casa",
+    "Farofa de banana",
+    "Farofa de milho com legumes",
+    "Farofa temperada com carne",
+    "Fettuccine ao molho de calabresa",
+    "Fettuccine com molho de calabresa e tomate",
+    "Iscas de berinjela a milanesa",
+    "Jilo frito",
+    "Legumes a saute",
+    "Macarrao alho e oleo",
+    "Macarrao alho e oleo com bacon",
+    "Macarrao ao molho branco com brocolis",
+    "Macarrao ao molho de tomate",
+    "Macarrao ao sugo",
+    "Macarrao colorido alho e oleo",
+    "Macarrao com molho branco e parmesao",
+    "Macarrao espaguete ao molho de tomate",
+    "Macarrao molho branco",
+    "Macarrao yakissoba de legumes",
+    "Mandioca cozida",
+    "Mandioca frita",
+    "Mix / Seleta de legumes",
+    "Nhoque ao molho",
+    "Ovo frito",
+    "Polenta ao molho",
+    "Polenta ao molho sugo",
+    "Polenta com molho bolonhesa",
+    "Pure de batata",
+    "Pure de cabotia",
+    "Repolho com escarola refogado",
+    "Repolho refogado",
+    "Repolho refogado com tomate",
+    "Rolinho de berinjela com creme de ricota",
+    "Salsicha em molho",
+    "Tempura de legumes",
+    "Torta de frango com requeijao",
+    "Torta de legumes",
+    "Vagem com cenoura"
+  ]
+};
+
+// ==========================================================================
+// COMPATIBILIDADE COM O CARDÁPIO DO DIA JÁ SALVO NO FIREBASE
+// O cardápio do dia guarda POSIÇÕES (números) das listas acima. Como as listas
+// foram reorganizadas em ordem alfabética, as posições antigas são convertidas
+// pelos NOMES para as posições novas, sem o dono precisar remarcar nada.
+// ==========================================================================
+const LISTAS_ANTIGAS = {
+  carnes: [
     "Almondegas suinas ao molho barbecue",
     "Bife acebolado",
     "Bife bovino a milanesa (+ R$ 3,00)",
@@ -188,6 +377,23 @@ const BANCO_OPCOES = {
     "Torta de frango com requeijao"
   ]
 };
+const NOMES_RENOMEADOS = {"Staek de frango a parmegiana": "Steak de frango a parmegiana"};
+const VERSAO_LISTAS = 2;
+
+function migrarIndicesCardapio(dados) {
+  if (!dados || dados.versaoLista === VERSAO_LISTAS) return dados;
+  const copia = { ...dados };
+  [["carnes", "carnesAtivas"], ["guarnicoes", "guarnicoesAtivas"]].forEach(([lista, campo]) => {
+    copia[campo] = (dados[campo] || [])
+      .map((idx) => {
+        const nomeAntigo = LISTAS_ANTIGAS[lista][idx];
+        return BANCO_OPCOES[lista].indexOf(NOMES_RENOMEADOS[nomeAntigo] || nomeAntigo);
+      })
+      .filter((idx) => idx >= 0);
+  });
+  copia.versaoLista = VERSAO_LISTAS;
+  return copia;
+}
 
 // MARMITAS E CAMINHO DAS FOTOS DA PASTA img/
 const MARMITAS_TIPOS = [
@@ -219,7 +425,7 @@ const CARDAPIO_DEFAULT = {
   guarnicoesAtivas: [5, 13, 16]
 };
 
-let cardapioDia = { ...CARDAPIO_DEFAULT };
+let cardapioDia = migrarIndicesCardapio({ ...CARDAPIO_DEFAULT });
 let carrinho = [];
 let marmitaEmSelecao = null;
 let panquecaItemTemp = null;
@@ -247,11 +453,11 @@ function carregarDados() {
   database.ref("cardapioDia").on("value", (snapshot) => {
     const dadosNuvem = snapshot.val();
     if (dadosNuvem) {
-      cardapioDia = dadosNuvem;
+      cardapioDia = migrarIndicesCardapio(dadosNuvem);
       atualizarInterface();
     } else {
-      cardapioDia = { ...CARDAPIO_DEFAULT };
-      database.ref("cardapioDia").set(CARDAPIO_DEFAULT);
+      cardapioDia = migrarIndicesCardapio({ ...CARDAPIO_DEFAULT });
+      database.ref("cardapioDia").set(cardapioDia);
     }
   });
 }
@@ -456,7 +662,7 @@ function atualizarInterface() {
             <div>
               <span class="badge" style="background:#d9381e; color:white; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🥞 COMBO ESPECIAL</span>
               <h3 style="margin-top:5px; color:#d9381e;">Combo de Panquecas</h3>
-              <p class="descricao-prato" style="margin-top:5px;">Panquecas artesanais acompanhadas de Arroz + Batata Frita + Salada</p>
+              <p class="descricao-prato" style="margin-top:5px;">Combo com 4 panquecas</p>
             </div>
             <p class="preco-tag" style="color:#d9381e; font-size:1.1rem; font-weight:bold;">R$ 30,00</p>
           </div>
@@ -817,13 +1023,11 @@ function confirmarMontagemMarmita() {
     precoFinalMarmita += 4.00;
   }
 
-  // SOMA ADICIONAL DE R$ 4,00 PARA BIFE BOVINO À PARMEGIANA
+  // SOMA O ADICIONAL INDICADO NO NOME DA CARNE, EX: "(+ R$ 3,00)", "(+ R$ 4,00)", "(+ R$ 7,00)"
   carnesSelec.forEach(carne => {
-    if (carne.includes("+ R$ 4,00")) {
-      precoFinalMarmita += 4.00;
-    }
-    if (carne.includes("+ R$ 3,00")) {
-      precoFinalMarmita += 3.00;
+    const adicional = carne.match(/\+ R\$ (\d+(?:,\d+)?)/);
+    if (adicional) {
+      precoFinalMarmita += parseFloat(adicional[1].replace(",", "."));
     }
   });
 
@@ -1456,7 +1660,7 @@ function carregarRelatorioVendas() {
 
       const jaImpresso = p.impresso === true;
       const btnStatusImprimir = jaImpresso
-        ? `<button disabled style="background:#6c757d; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:not-allowed;">✅ IMPRESSO${p.impressoEm ? " às " + esc(p.impressoEm) : ""}</button>`
+        ? `<span style="display:inline-block; background:#6c757d; color:#fff; padding:6px 12px; border-radius:4px; font-weight:bold; margin-right:6px;">✅ IMPRESSO${p.impressoEm ? " às " + esc(p.impressoEm) : ""}</span><button onclick="reimprimirComandaPedido('${key}')" style="background:#fd7e14; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔁 Reimprimir</button>`
         : `<button onclick="imprimirComandaPedido('${key}')" style="background:#28a745; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ Imprimir Pedido</button>`;
 
       const itensStr = p.itensDetalhados
@@ -1472,6 +1676,7 @@ function carregarRelatorioVendas() {
           <small style="display:block; color:#444; font-size: 0.85rem; margin-bottom: 4px;">• ${itensStr}</small>
           <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${esc(p.tipo)} | 💳 ${esc(p.pagamento)} | 🕒 Entregar às: <strong>${esc(p.horarioDesejado)}</strong></small>
           ${p.enderecoCompleto ? `<small style="display:block; color:#666; margin-bottom: 8px;">📍 ${esc(p.enderecoCompleto)}</small>` : ''}
+          ${p.reimpressoes ? `<small style="display:block; color:#b45309; margin-bottom: 6px;">🔁 Reimpresso ${esc(p.reimpressoes)}x${p.ultimaReimpressaoEm ? " (última às " + esc(p.ultimaReimpressaoEm) + ")" : ""}</small>` : ''}
           <div style="text-align: right; margin-top: 5px;">
             ${btnStatusImprimir}
           </div>
@@ -1488,22 +1693,14 @@ function carregarRelatorioVendas() {
   });
 }
 
-// IMPRIME A COMANDA DA COZINHA E MARCA O STATUS 'IMPRESSO' NO FIREBASE
-function imprimirComandaPedido(key) {
-  const p = todosPedidosCache[key] || pedidosAlerta[key];
-  if (!p) return;
-
-  const areaImp = document.getElementById("area-impressao-comanda");
-  if (!areaImp) {
-    alert("Área de impressão não encontrada no index.html.");
-    return;
-  }
-
+// MONTA O HTML DA COMANDA (segundaVia = true coloca o aviso de reimpressão no topo)
+function montarComandaHtml(p, segundaVia) {
   const linha = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
 
-  let htmlComanda = `
+  let html = `
     <div style="font-family: monospace; font-size: 10pt; width: 100%; padding: 2px;">
       <h2 style="text-align:center; font-size: 14pt; margin-bottom: 2px;">ROTISSERIA CASTELLO</h2>
+      ${segundaVia ? `<p style="text-align:center; font-size: 12pt;"><strong>*** 2ª VIA - REIMPRESSÃO ***</strong></p>` : ""}
       ${linha}
       <p style="font-size: 12pt;"><strong>HORÁRIO: ${esc(p.horarioDesejado)}</strong></p>
       <p>PEDIDO EM: ${esc(p.dataHora)}</p>
@@ -1518,23 +1715,39 @@ function imprimirComandaPedido(key) {
   itens.forEach((it) => {
     // O 1º trecho é o nome do prato; os demais (feijão, carnes, acomp...) vão em linhas separadas
     const [nomePrato, ...resto] = String(it).split(" | ");
-    htmlComanda += `<p style="margin-top: 6px;"><strong>- ${esc(nomePrato)}</strong></p>`;
+    html += `<p style="margin-top: 6px;"><strong>- ${esc(nomePrato)}</strong></p>`;
     resto.forEach((r) => {
-      htmlComanda += `<p style="margin-left: 10px;">${esc(r)}</p>`;
+      html += `<p style="margin-left: 10px;">${esc(r)}</p>`;
     });
   });
 
-  htmlComanda += `
+  html += `
       ${linha}
       <p>PAGAMENTO: ${esc(p.pagamento)}</p>
       <p style="font-size: 12pt;"><strong>TOTAL: ${formatarReais(p.total)}</strong></p>
       ${linha}
     </div>
   `;
+  return html;
+}
 
-  areaImp.innerHTML = htmlComanda;
+function horaAgora() {
+  return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
 
-  const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+// IMPRIME A COMANDA DA COZINHA E MARCA O STATUS 'IMPRESSO' NO FIREBASE
+function imprimirComandaPedido(key) {
+  const p = todosPedidosCache[key] || pedidosAlerta[key];
+  if (!p) return;
+
+  const areaImp = document.getElementById("area-impressao-comanda");
+  if (!areaImp) {
+    alert("Área de impressão não encontrada no index.html.");
+    return;
+  }
+
+  areaImp.innerHTML = montarComandaHtml(p, false);
+  const hora = horaAgora();
 
   // A transação garante que, mesmo com 2 pessoas clicando ao mesmo tempo, só uma imprime
   database.ref(`pedidos/${key}/impresso`).transaction(
@@ -1550,13 +1763,46 @@ function imprimirComandaPedido(key) {
       if (!confirmado) {
         database.ref(`pedidos/${key}/impressoEm`).once("value").then((s) => {
           mostrarAvisoImpresso(key, p, s.val());
-          alert(`Este pedido já foi impresso${s.val() ? " às " + s.val() : ""}. Para evitar duplicidade, não foi impresso de novo.`);
+          alert(`Este pedido já foi impresso${s.val() ? " às " + s.val() : ""}. Para evitar duplicidade, não foi impresso de novo. Se precisar de outra via, use o botão "Reimprimir" no relatório.`);
         });
         return;
       }
 
       database.ref(`pedidos/${key}`).update({ impressoEm: hora });
       mostrarAvisoImpresso(key, p, hora);
+      window.print();
+    }
+  );
+}
+
+// REIMPRESSÃO (2ª VIA): pede confirmação, imprime com aviso de 2ª via e REGISTRA no pedido
+function reimprimirComandaPedido(key) {
+  const p = todosPedidosCache[key] || pedidosAlerta[key];
+  if (!p) return;
+
+  const areaImp = document.getElementById("area-impressao-comanda");
+  if (!areaImp) {
+    alert("Área de impressão não encontrada no index.html.");
+    return;
+  }
+
+  const qtd = Number(p.reimpressoes) || 0;
+  const aviso = `O pedido de ${p.nome} já foi impresso${p.impressoEm ? " às " + p.impressoEm : ""}${qtd ? " (e reimpresso " + qtd + "x)" : ""}.\n\nImprimir uma 2ª via mesmo assim?`;
+  if (!confirm(aviso)) return;
+
+  areaImp.innerHTML = montarComandaHtml(p, true);
+  const hora = horaAgora();
+
+  // Conta a reimpressão e garante que o pedido continua marcado como impresso
+  database.ref(`pedidos/${key}/reimpressoes`).transaction(
+    (n) => (Number(n) || 0) + 1,
+    (erro) => {
+      if (erro) {
+        console.error("Erro ao registrar reimpressão:", erro);
+      } else {
+        database.ref(`pedidos/${key}`).update({ impresso: true, ultimaReimpressaoEm: hora });
+        mostrarAvisoImpresso(key, p, p.impressoEm, hora);
+      }
       window.print();
     }
   );
@@ -1628,7 +1874,7 @@ function ativarAlertaPedidos() {
     // Quando qualquer computador imprime um pedido, aparece o aviso verde de "já impresso"
     consulta.on("child_changed", (s) => {
       if (s.val() && s.val().impresso === true) {
-        mostrarAvisoImpresso(s.key, s.val(), s.val().impressoEm);
+        mostrarAvisoImpresso(s.key, s.val(), s.val().impressoEm, s.val().reimpressoes ? s.val().ultimaReimpressaoEm : null);
       }
     });
   }).catch((erro) => {
@@ -1669,13 +1915,14 @@ function imprimirPedidoDoAlerta(key) {
 }
 
 // AVISO VERDE: este pedido já foi impresso, não imprimir de novo
-function mostrarAvisoImpresso(key, p, hora) {
+function mostrarAvisoImpresso(key, p, hora, horaReimpressao) {
   delete pedidosAlerta[key];
   const anterior = avisosImpressos[key];
   avisosImpressos[key] = {
     nome: p.nome,
     total: p.total,
-    hora: hora || (anterior && anterior.hora) || null
+    hora: hora || (anterior && anterior.hora) || null,
+    reimpresso: horaReimpressao || (anterior && anterior.reimpresso) || null
   };
   clearTimeout(timersAvisos[key]);
   timersAvisos[key] = setTimeout(() => dispensarAvisoImpresso(key), 60000);
@@ -1718,8 +1965,8 @@ function renderizarAlertas() {
     const a = avisosImpressos[key];
     return `
       <div style="background:#d1e7dd; border:2px solid #198754; border-radius:8px; padding:10px; box-shadow:0 4px 14px rgba(0,0,0,0.35); color:#0f5132;">
-        <strong style="display:block;">✅ JÁ IMPRESSO: ${esc(a.nome)} - ${formatarReais(a.total)}${a.hora ? " (às " + esc(a.hora) + ")" : ""}</strong>
-        <small style="display:block; margin:4px 0 8px;">Não precisa imprimir de novo.</small>
+        <strong style="display:block;">${a.reimpresso ? "🔁 REIMPRESSO (2ª via)" : "✅ JÁ IMPRESSO"}: ${esc(a.nome)} - ${formatarReais(a.total)}${a.reimpresso ? " (às " + esc(a.reimpresso) + ")" : (a.hora ? " (às " + esc(a.hora) + ")" : "")}</strong>
+        <small style="display:block; margin:4px 0 8px;">${a.reimpresso ? "A 2ª via foi impressa. O pedido continua marcado como impresso." : "Não precisa imprimir de novo."}</small>
         <button type="button" onclick="dispensarAvisoImpresso('${key}')" style="width:100%; background:#198754; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer;">OK</button>
       </div>`;
   }).join("");
