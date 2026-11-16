@@ -1196,12 +1196,21 @@ function finalizarPedido() {
     return;
   }
 
+  // Evita pedido duplicado se o cliente clicar duas vezes enquanto o número é gerado
+  if (finalizandoPedido) return;
+  finalizandoPedido = true;
+  setTimeout(() => { finalizandoPedido = false; }, 8000);
+
+  // PEGA O NÚMERO DO PEDIDO (1º do dia = 1, 2º = 2...) E SÓ ENTÃO MONTA E ENVIA
+  proximoNumeroPedido().then((numeroPedido) => {
+
   const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
 
   // 1. MONTA O OBJETO DO PEDIDO PARA O RELATÓRIO E IMPRESSÃO
   const novoPedido = {
     id: agoraCorrigido().getTime(),
     data: dataLocalISO(agoraCorrigido()),
+    numeroPedido: numeroPedido, // nº do dia (fica em branco se o contador não responder)
     dataHora: agoraCorrigido().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     nome: nome,
     tipo: entregaTexto,
@@ -1248,7 +1257,7 @@ function finalizarPedido() {
     textoItens += `\n`;
   });
 
-  let msg = `*NOVO PEDIDO - ROTISSERIA CASTELLO*\n\n`;
+  let msg = `*NOVO PEDIDO${numeroPedido ? ' Nº ' + numeroPedido : ''} - ROTISSERIA CASTELLO*\n\n`;
   msg += `*ITENS DO PEDIDO:*\n${textoItens}`;
   msg += `*Tipo de Pedido:* ${entregaTexto}\n`;
   msg += `*Horário Desejado:* *${horarioDesejado}* (Prazo est.: 30-40 min)\n`;
@@ -1276,12 +1285,39 @@ function finalizarPedido() {
   
   database.ref("pedidos").push(novoPedido)
     .then(() => {
+      finalizandoPedido = false;
       window.location.href = urlWhatsapp;
     })
     .catch((erro) => {
       console.error("Erro ao salvar no relatório:", erro);
+      finalizandoPedido = false;
       window.location.href = urlWhatsapp;
     });
+
+  });
+}
+
+let finalizandoPedido = false;
+
+// CONTADOR DE PEDIDOS DO DIA NO FIREBASE (recomeça do 1 todo dia, sem repetir número)
+function proximoNumeroPedido() {
+  const dia = dataLocalISO(agoraCorrigido());
+  return new Promise((resolve) => {
+    // se a internet estiver ruim, não trava o pedido: segue sem número
+    const limite = setTimeout(() => resolve(null), 4000);
+    database.ref(`contadores/${dia}`).transaction(
+      (atual) => (Number(atual) || 0) + 1,
+      (erro, confirmado, snapshot) => {
+        clearTimeout(limite);
+        if (erro || !confirmado) {
+          console.error("Não foi possível gerar o número do pedido:", erro);
+          resolve(null);
+        } else {
+          resolve(snapshot.val());
+        }
+      }
+    );
+  });
 }
 
 function abrirAdmin() {
@@ -1670,7 +1706,7 @@ function carregarRelatorioVendas() {
       containerLista.innerHTML += `
         <div style="background: ${jaImpresso ? '#f1f1f1' : '#ffffff'}; border: 1px solid #ddd; border-left: 5px solid ${jaImpresso ? '#6c757d' : '#28a745'}; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-            <strong style="color: #333; font-size: 1rem;">⏰ ${esc(p.dataHora)} - ${esc(p.nome)}</strong>
+            <strong style="color: #333; font-size: 1rem;">${p.numeroPedido ? `<span style="background:#212529; color:#fff; border-radius:4px; padding:1px 7px; margin-right:6px;">Nº ${esc(p.numeroPedido)}</span>` : ""}⏰ ${esc(p.dataHora)} - ${esc(p.nome)}</strong>
             <span style="background:#28a745; color:white; padding: 3px 8px; border-radius:4px; font-weight:bold;">${formatarReais(p.total)}</span>
           </div>
           <small style="display:block; color:#444; font-size: 0.85rem; margin-bottom: 4px;">• ${itensStr}</small>
@@ -1700,6 +1736,7 @@ function montarComandaHtml(p, segundaVia) {
   let html = `
     <div style="font-family: monospace; font-size: 10pt; width: 100%; padding: 2px;">
       <h2 style="text-align:center; font-size: 14pt; margin-bottom: 2px;">ROTISSERIA CASTELLO</h2>
+      ${p.numeroPedido ? `<p style="text-align:center; font-size: 18pt;"><strong>PEDIDO Nº ${esc(p.numeroPedido)}</strong></p>` : ""}
       ${segundaVia ? `<p style="text-align:center; font-size: 12pt;"><strong>*** 2ª VIA - REIMPRESSÃO ***</strong></p>` : ""}
       ${linha}
       <p style="font-size: 12pt;"><strong>HORÁRIO: ${esc(p.horarioDesejado)}</strong></p>
@@ -1787,7 +1824,7 @@ function reimprimirComandaPedido(key) {
   }
 
   const qtd = Number(p.reimpressoes) || 0;
-  const aviso = `O pedido de ${p.nome} já foi impresso${p.impressoEm ? " às " + p.impressoEm : ""}${qtd ? " (e reimpresso " + qtd + "x)" : ""}.\n\nImprimir uma 2ª via mesmo assim?`;
+  const aviso = `O pedido${p.numeroPedido ? " Nº " + p.numeroPedido : ""} de ${p.nome} já foi impresso${p.impressoEm ? " às " + p.impressoEm : ""}${qtd ? " (e reimpresso " + qtd + "x)" : ""}.\n\nImprimir uma 2ª via mesmo assim?`;
   if (!confirm(aviso)) return;
 
   areaImp.innerHTML = montarComandaHtml(p, true);
@@ -1920,6 +1957,7 @@ function mostrarAvisoImpresso(key, p, hora, horaReimpressao) {
   const anterior = avisosImpressos[key];
   avisosImpressos[key] = {
     nome: p.nome,
+    numeroPedido: p.numeroPedido,
     total: p.total,
     hora: hora || (anterior && anterior.hora) || null,
     reimpresso: horaReimpressao || (anterior && anterior.reimpresso) || null
@@ -1950,7 +1988,7 @@ function renderizarAlertas() {
     const qtdItens = (p.itensDetalhados || []).length;
     return `
       <div style="background:#fff3cd; border:2px solid #fd7e14; border-radius:8px; padding:10px; box-shadow:0 4px 14px rgba(0,0,0,0.35); color:#333;">
-        <strong style="display:block;">🔔 Novo pedido! ${esc(p.nome)} - ${formatarReais(p.total)}</strong>
+        <strong style="display:block;">🔔 Novo pedido${p.numeroPedido ? " Nº " + esc(p.numeroPedido) : ""}! ${esc(p.nome)} - ${formatarReais(p.total)}</strong>
         <small style="display:block; margin:4px 0 8px;">
           ${esc(p.tipo)} | 🕒 para as <strong>${esc(p.horarioDesejado)}</strong>${qtdItens ? ` | ${qtdItens} item(ns)` : ""}
         </small>
@@ -1965,7 +2003,7 @@ function renderizarAlertas() {
     const a = avisosImpressos[key];
     return `
       <div style="background:#d1e7dd; border:2px solid #198754; border-radius:8px; padding:10px; box-shadow:0 4px 14px rgba(0,0,0,0.35); color:#0f5132;">
-        <strong style="display:block;">${a.reimpresso ? "🔁 REIMPRESSO (2ª via)" : "✅ JÁ IMPRESSO"}: ${esc(a.nome)} - ${formatarReais(a.total)}${a.reimpresso ? " (às " + esc(a.reimpresso) + ")" : (a.hora ? " (às " + esc(a.hora) + ")" : "")}</strong>
+        <strong style="display:block;">${a.reimpresso ? "🔁 REIMPRESSO (2ª via)" : "✅ JÁ IMPRESSO"}${a.numeroPedido ? " Nº " + esc(a.numeroPedido) : ""}: ${esc(a.nome)} - ${formatarReais(a.total)}${a.reimpresso ? " (às " + esc(a.reimpresso) + ")" : (a.hora ? " (às " + esc(a.hora) + ")" : "")}</strong>
         <small style="display:block; margin:4px 0 8px;">${a.reimpresso ? "A 2ª via foi impressa. O pedido continua marcado como impresso." : "Não precisa imprimir de novo."}</small>
         <button type="button" onclick="dispensarAvisoImpresso('${key}')" style="width:100%; background:#198754; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer;">OK</button>
       </div>`;
