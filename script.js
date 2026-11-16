@@ -74,6 +74,13 @@ const BANCO_SUGESTOES = [
   "Macarrao parisiense com file de frango grelhado e batata frita"
 ];
 
+// FOTO DE CADA SUGESTÃO DO CHEF: quando a sugestão do dia é uma destas, o card mostra a foto dela.
+// Para incluir outra: salve a foto na pasta img/ e acrescente uma linha aqui
+// (o texto tem que ser igual ao da lista acima). As demais usam a foto padrão img/sugestao.png.
+const FOTOS_SUGESTOES = {
+  "Macarrao parisiense com file de frango grelhado e batata frita": "img/macarrao-parisiense.png"
+};
+
 // LISTA FIXA DE ESPECIAIS DO DIA (R$ 33,00)
 const BANCO_ESPECIAIS = [
   { nome: "Estrogonofe de Filé Mignon", desc: "Estrogonofe de filé + Arroz Branco + Batata Frita", img: "img/estrogonofe-file.png" },
@@ -575,7 +582,8 @@ function atualizarInterface() {
   document.getElementById("desc-sugestao").innerText = sugestaoTexto;
   document.getElementById("desc-especial").innerText = (cardapioDia.especialNome ? cardapioDia.especialNome + (cardapioDia.especialDia ? ": " + cardapioDia.especialDia : "") : CARDAPIO_DEFAULT.especialDia);
   
-  if (cardapioDia.sugestaoImg) document.getElementById("img-sugestao").src = cardapioDia.sugestaoImg;
+  const fotoSugestao = FOTOS_SUGESTOES[cardapioDia.sugestaoChef] || cardapioDia.sugestaoImg;
+  if (fotoSugestao) document.getElementById("img-sugestao").src = fotoSugestao;
   if (cardapioDia.especialImg) document.getElementById("img-especial").src = cardapioDia.especialImg;
 
   const cardSugestao = document.getElementById("desc-sugestao")?.closest('.card');
