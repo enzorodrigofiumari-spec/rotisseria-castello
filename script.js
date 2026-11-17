@@ -347,6 +347,7 @@ const LISTAS_ANTIGAS = {
     "Tirinhas de frango crocante"
   ],
   guarnicoes: [
+    "Abobrinha ao molho branco",
     "Abobrinha refogada com alho",
     "Abobrinha na manteiga com hortela",
     "Acelga refogada com shoyu",
