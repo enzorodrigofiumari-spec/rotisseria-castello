@@ -114,7 +114,7 @@ const BANCO_OPCOES = {
     "Almondegas ao molho",
     "Almondegas ao molho de tomate",
     "Almondegas suinas ao molho barbecue",
-    "Bife acebolado",
+    "Bife acebolado (+ R$ 1,00)",
     "Bife bovino a milanesa (+ R$ 3,00)",
     "Bife bovino a parmegiana (+ R$ 4,00)",
     "Bife de contra file (+ R$ 7,00)",
@@ -384,7 +384,7 @@ const LISTAS_ANTIGAS = {
     "Torta de frango com requeijao"
   ]
 };
-const NOMES_RENOMEADOS = {"Staek de frango a parmegiana": "Steak de frango a parmegiana"};
+const NOMES_RENOMEADOS = {"Staek de frango a parmegiana": "Steak de frango a parmegiana", "Bife acebolado": "Bife acebolado (+ R$ 1,00)"};
 const VERSAO_LISTAS = 2;
 
 function migrarIndicesCardapio(dados) {
@@ -830,6 +830,17 @@ function renderizarBebidas() {
   });
 }
 
+// ADICIONAIS DA MARMITA (aparecem no final do pedido, como a salada). Para mudar nome ou preço, edite aqui.
+const ADICIONAIS_MARMITA = [
+  { nome: "Ovo frito", preco: 3.00 },
+  { nome: "Farofa da casa", preco: 3.00 },
+  { nome: "Batata frita", preco: 3.00 }
+];
+
+function textoAdicional(a) {
+  return `${a.nome} (+ R$ ${a.preco.toFixed(2).replace(".", ",")})`;
+}
+
 function abrirModalMontar(idMarmita) {
   if (cardapioDia.statusLoja !== "Aberto") {
     alert("Desculpe, a loja esta fechada no momento!");
@@ -942,6 +953,13 @@ function abrirModalMontar(idMarmita) {
     boxSalada.innerHTML = `<input type="radio" name="opcao-salada" value="SEM SALADA" checked style="display:none;">`;
   }
 
+  const boxAdicionais = document.getElementById("box-adicionais");
+  if (boxAdicionais) {
+    boxAdicionais.innerHTML = ADICIONAIS_MARMITA.map((a, i) => `
+      <label class="check-item"><input type="checkbox" name="adicional-marmita" value="${i}"> ${textoAdicional(a)}</label>
+    `).join("");
+  }
+
   document.getElementById("obs-marmita").value = "";
   document.getElementById("modal-montar").style.display = "flex";
 }
@@ -1018,6 +1036,9 @@ function confirmarMontagemMarmita() {
   const opcaoSaladaEl = document.querySelector('input[name="opcao-salada"]:checked');
   const opcaoSalada = opcaoSaladaEl ? opcaoSaladaEl.value : "SEM SALADA";
   const obs = document.getElementById("obs-marmita").value;
+  const adicionaisSelec = Array.from(document.querySelectorAll('input[name="adicional-marmita"]:checked'))
+    .map((a) => ADICIONAIS_MARMITA[parseInt(a.value)])
+    .filter(Boolean);
 
   let precoFinalMarmita = marmitaEmSelecao.preco;
   
@@ -1039,6 +1060,9 @@ function confirmarMontagemMarmita() {
     }
   });
 
+  // SOMA OS ADICIONAIS ESCOLHIDOS (ovo frito, farofa da casa, batata frita)
+  adicionaisSelec.forEach((a) => { precoFinalMarmita += a.preco; });
+
   const itemPronto = {
     nome: isFeijoada ? `${marmitaEmSelecao.nome} (Feijoada Completa)` : marmitaEmSelecao.nome,
     preco: precoFinalMarmita,
@@ -1048,6 +1072,7 @@ function confirmarMontagemMarmita() {
       carnes: carnesSelec,
       guarnicoes: guarnicoesSelec,
       salada: opcaoSalada,
+      adicionais: adicionaisSelec.map(textoAdicional),
       obs: obs
     },
     qtd: 1
@@ -1092,6 +1117,7 @@ function renderizarCarrinho() {
           • Carnes: ${item.detalhes.carnes.join(", ") || "Nenhuma"}<br>
           • Acomp: ${item.detalhes.guarnicoes.join(", ") || "Nenhum"}<br>
           • Salada: ${item.detalhes.salada}
+          ${item.detalhes.adicionais?.length ? `<br>• Adicionais: ${item.detalhes.adicionais.join(", ")}` : ''}
           ${item.detalhes.obs ? `<br>• Obs: ${item.detalhes.obs}` : ''}
         </div>
       `;
@@ -1225,6 +1251,7 @@ function finalizarPedido() {
     enderecoCompleto: isRetirada ? "Retirada no Balcão" : `${rua}, Nº ${numero}${complemento ? ' (' + complemento + ')' : ''} - Bairro ${bairroNome}`,
     horarioDesejado: horarioDesejado,
     pagamento: pagamento + (campoExtra ? ` (${campoExtra})` : ""),
+    trocoPara: pagamento === "Dinheiro" ? lerValorEmReais(campoExtra) : null, // valor que o cliente vai entregar (ex.: 50)
     total: subtotal,
     impresso: false,
     itensDetalhados: carrinho.map(item => {
@@ -1234,6 +1261,7 @@ function finalizarPedido() {
         if (item.detalhes.carnes?.length) det += ` | Carnes: ${item.detalhes.carnes.join(", ")}`;
         if (item.detalhes.guarnicoes?.length) det += ` | Acomp: ${item.detalhes.guarnicoes.join(", ")}`;
         if (item.detalhes.salada) det += ` | Salada: ${item.detalhes.salada}`;
+        if (item.detalhes.adicionais?.length) det += ` | Adicionais: ${item.detalhes.adicionais.join(", ")}`;
         if (item.detalhes.obs) det += ` | Obs: ${item.detalhes.obs}`;
       }
       return det;
@@ -1260,6 +1288,7 @@ function finalizarPedido() {
         item.detalhes.guarnicoes.forEach(g => textoItens += `   - ${g}\n`);
       }
       if (item.detalhes.salada) textoItens += `   - Salada: ${item.detalhes.salada}\n`;
+      if (item.detalhes.adicionais?.length) textoItens += `   - Adicionais: ${item.detalhes.adicionais.join(", ")}\n`;
       if (item.detalhes.obs) textoItens += `   - Obs: ${item.detalhes.obs}\n`;
     }
     textoItens += `\n`;
@@ -1738,6 +1767,49 @@ function carregarRelatorioVendas() {
 }
 
 // MONTA O HTML DA COMANDA (segundaVia = true coloca o aviso de reimpressão no topo)
+// Lê um valor em reais digitado pelo cliente: "50", "50,00", "R$ 50,00", "troco para 100", "1.000,00"
+function lerValorEmReais(texto) {
+  const m = String(texto || "").match(/\d[\d.,]*/);
+  if (!m) return null;
+  let s = m[0].replace(/[.,]+$/, "");
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");      // 1.234,56 -> 1234.56
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");     // 1.000 -> 1000
+  const v = parseFloat(s);
+  return isFinite(v) ? v : null;
+}
+
+// BLOCO DE PAGAMENTO DA COMANDA. Dinheiro sai igual ao cupom da loja:
+//   Total ........ 31,00
+//   LEVAR TROCO DE: 19,00
+//   Total a Receber 50,00
+//   PAGAMENTO EM DINHEIRO
+function blocoPagamentoHtml(p) {
+  const forma = String(p.pagamento || "");
+  const total = Math.round((Number(p.total) || 0) * 100) / 100;
+
+  if (!/^dinheiro/i.test(forma)) {
+    return `<p>PAGAMENTO: ${esc(p.pagamento)}</p>
+      <p style="font-size: 12pt;"><strong>TOTAL: ${formatarReais(p.total)}</strong></p>`;
+  }
+
+  const num = (v) => v.toFixed(2).replace(".", ",");
+  const linha = (a, b, forte) => `<div style="display:flex; justify-content:space-between;${forte ? " font-size: 12pt; font-weight: bold;" : ""}"><span>${a}</span><span>${b}</span></div>`;
+  const textoTroco = (forma.match(/\((.*)\)/) || [])[1] || "";
+  const trocoPara = (p.trocoPara !== undefined && p.trocoPara !== null) ? Number(p.trocoPara) : lerValorEmReais(textoTroco);
+
+  let h = linha("Total", num(total));
+  if (trocoPara !== null && trocoPara > total) {
+    h += linha("LEVAR TROCO DE:", num(Math.round((trocoPara - total) * 100) / 100));
+    h += linha("Total a Receber", num(trocoPara), true);
+  } else {
+    h += linha("Total a Receber", num(total), true);
+    // o cliente escreveu algo que não deu para calcular (ou valor menor que o total): mostra para conferir
+    if (textoTroco && trocoPara !== total) h += `<p>OBS. TROCO: ${esc(textoTroco)} (conferir)</p>`;
+  }
+  h += `<p style="font-size: 14pt; font-weight: bold; margin-top: 4px;">PAGAMENTO EM DINHEIRO</p>`;
+  return h;
+}
+
 function montarComandaHtml(p, segundaVia) {
   const linha = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
 
@@ -1768,8 +1840,7 @@ function montarComandaHtml(p, segundaVia) {
 
   html += `
       ${linha}
-      <p>PAGAMENTO: ${esc(p.pagamento)}</p>
-      <p style="font-size: 12pt;"><strong>TOTAL: ${formatarReais(p.total)}</strong></p>
+      ${blocoPagamentoHtml(p)}
       ${linha}
     </div>
   `;
@@ -1872,6 +1943,10 @@ function prepararAudio() {
   }
 }
 
+// VOLUME DO APITO: de 0.1 (baixo) até 1.0 (máximo possível pelo site).
+// Para ficar ainda mais alto, aumente também o volume do Windows e do navegador.
+const VOLUME_APITO = 1.0;
+
 // Três bipes seguidos, gerados pelo próprio navegador (não precisa de arquivo de som)
 function tocarApito() {
   if (!audioCtx) return;
@@ -1880,10 +1955,10 @@ function tocarApito() {
   [[880, 0], [1175, 0.3], [880, 0.6]].forEach(([freq, atraso]) => {
     const osc = audioCtx.createOscillator();
     const ganho = audioCtx.createGain();
-    osc.type = "triangle";
+    osc.type = "square"; // onda "quadrada": som mais forte e mais fácil de ouvir no barulho da cozinha
     osc.frequency.value = freq;
     ganho.gain.setValueAtTime(0.0001, t0 + atraso);
-    ganho.gain.exponentialRampToValueAtTime(0.6, t0 + atraso + 0.03);
+    ganho.gain.exponentialRampToValueAtTime(VOLUME_APITO, t0 + atraso + 0.03);
     ganho.gain.exponentialRampToValueAtTime(0.0001, t0 + atraso + 0.25);
     osc.connect(ganho);
     ganho.connect(audioCtx.destination);
