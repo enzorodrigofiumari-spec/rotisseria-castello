@@ -417,6 +417,7 @@ const CARDAPIO_DEFAULT = {
   fitAtiva: true,
   fitDesc: "Frango Grelhado + Arroz Integral + Seleta de Legumes a Saute",
   comboPanquecaAtivo: true,
+  comboCharutoAtivo: true,
   sugestaoAtiva: true,
   especialAtivo: true,
   saladaAtiva: true,
@@ -680,6 +681,42 @@ function atualizarInterface() {
     }
   } else if (boxComboPanqueca) {
     boxComboPanqueca.style.display = "none";
+  }
+
+  // COMBO DE CHARUTO (R$ 30,00 - 4 unidades): mesmo estilo do combo de panqueca, entra direto no carrinho
+  let boxComboCharuto = document.getElementById("card-combo-charuto");
+  if (cardapioDia.comboCharutoAtivo !== false) {
+    if (!boxComboCharuto) {
+      const refCharuto = document.getElementById("card-combo-panqueca") || document.getElementById("card-fit-destaque") || (document.getElementById("desc-sugestao") ? document.getElementById("desc-sugestao").closest(".card") : null);
+      if (refCharuto) {
+        boxComboCharuto = document.createElement("div");
+        boxComboCharuto.id = "card-combo-charuto";
+        boxComboCharuto.className = "card";
+        boxComboCharuto.style.marginTop = "15px";
+        boxComboCharuto.style.borderLeft = "5px solid #d9381e";
+        refCharuto.parentNode.insertBefore(boxComboCharuto, refCharuto.nextSibling);
+      }
+    }
+
+    if (boxComboCharuto) {
+      boxComboCharuto.style.display = "block";
+      boxComboCharuto.innerHTML = `
+        <img src="img/combo-de-charuto.png" onerror="this.style.display='none'" alt="Combo de Charuto" class="foto-prato">
+        <div class="card-body">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span class="badge" style="background:#d9381e; color:white; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🥬 COMBO ESPECIAL</span>
+              <h3 style="margin-top:5px; color:#d9381e;">Combo de Charuto</h3>
+              <p class="descricao-prato" style="margin-top:5px;">Charuto na folha de repolho - 4 unidades</p>
+            </div>
+            <p class="preco-tag" style="color:#d9381e; font-size:1.1rem; font-weight:bold;">R$ 30,00</p>
+          </div>
+          <button onclick="adicionarDireto('Combo de Charuto (4 unidades)', 30.00)" class="btn-add" style="background:#d9381e; width:100%; margin-top:10px;">+ Adicionar ao Pedido (R$ 30,00)</button>
+        </div>
+      `;
+    }
+  } else if (boxComboCharuto) {
+    boxComboCharuto.style.display = "none";
   }
 
   const statusElement = document.getElementById("status-loja");
@@ -1403,6 +1440,20 @@ function abrirAdmin() {
     }
     checkComboPAdmin.checked = cardapioDia.comboPanquecaAtivo !== false;
 
+    let checkComboCAdmin = document.getElementById("admin-check-combochar");
+    if (!checkComboCAdmin) {
+      const parentC = document.getElementById("admin-status").parentNode;
+      const labelCheckC = document.createElement("label");
+      labelCheckC.style.display = "block";
+      labelCheckC.style.marginTop = "10px";
+      labelCheckC.style.marginBottom = "8px";
+      labelCheckC.innerHTML = `<input type="checkbox" id="admin-check-combochar"> <strong>Disponibilizar COMBO DE CHARUTO Hoje (R$ 30,00)</strong>`;
+
+      parentC.appendChild(labelCheckC);
+      checkComboCAdmin = document.getElementById("admin-check-combochar");
+    }
+    checkComboCAdmin.checked = cardapioDia.comboCharutoAtivo !== false;
+
     let checkFeijoadaAdmin = document.getElementById("admin-check-feijoada");
     if (!checkFeijoadaAdmin) {
       const parent = document.getElementById("admin-status").parentNode;
@@ -1590,6 +1641,9 @@ function salvarDadosAdmin(event) {
 
   const checkComboP = document.getElementById("admin-check-combop");
   cardapioDia.comboPanquecaAtivo = checkComboP ? checkComboP.checked : true;
+
+  const checkComboC = document.getElementById("admin-check-combochar");
+  cardapioDia.comboCharutoAtivo = checkComboC ? checkComboC.checked : true;
 
   const checkSugestao = document.getElementById("admin-check-sugestao");
   cardapioDia.sugestaoAtiva = checkSugestao ? checkSugestao.checked : true;
