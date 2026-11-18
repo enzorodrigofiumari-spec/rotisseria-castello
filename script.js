@@ -94,7 +94,8 @@ const BANCO_ESPECIAIS = [
   { nome: "Tilápia à Parmegiana", desc: "2 pedaços de Tilápia à Parmegiana + Arroz Branco + Batata Frita", img: "img/tilapia-parmegiana.png" },
   { nome: "Iscas Contra Filé à Moda", desc: "Iscas de Contra Filé c/ tomate, cebola e molho 4 queijos + Arroz Branco + Batata Frita", img: "img/iscas-contra-file-moda.png" },
   { nome: "Virado a Paulista", desc: "Virado à Paulista + Arroz + Feijão + Ovo + Couve + Bisteca", img: "img/virado-paulista.png" },
-  { nome: "Porpetone Recheado", desc: "Porpeta enrolada com bacon e recheada com requeijão + Arroz branco + Iscas de frango crocante + Brócolis refogado + Batata frita", img: "img/porpetone-recheado.png" }
+  { nome: "Porpetone Recheado", desc: "Porpeta enrolada com bacon e recheada com requeijão + Arroz branco + Iscas de frango crocante + Brócolis refogado + Batata frita", img: "img/porpetone-recheado.png" },
+  { nome: "Parmegiana de Filé Mignon", desc: "Filé Mignon à Parmegiana + Arroz Branco + Batata Frita", img: "img/parmegiana-file-mignon.png" }
 ];
 
 // BANCO DE DADOS COMPLETO DE OPÇÕES DE MONTAGEM
