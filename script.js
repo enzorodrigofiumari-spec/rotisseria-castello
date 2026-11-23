@@ -78,7 +78,8 @@ const BANCO_SUGESTOES = [
 // Para incluir outra: salve a foto na pasta img/ e acrescente uma linha aqui
 // (o texto tem que ser igual ao da lista acima). As demais usam a foto padrão img/sugestao.png.
 const FOTOS_SUGESTOES = {
-  "Macarrao parisiense com file de frango grelhado e batata frita": "img/macarrao-parisiense.png"
+  "Macarrao parisiense com file de frango grelhado e batata frita": "img/macarrao-parisiense.png",
+  "Nhoque com frango grelhado": "img/nhoque.png"
 };
 
 // LISTA FIXA DE ESPECIAIS DO DIA (R$ 38,00)
