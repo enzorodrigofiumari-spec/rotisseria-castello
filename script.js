@@ -172,6 +172,7 @@ const BANCO_OPCOES = {
     "Galinhada",
     "Hamburguer a pizzaiolo",
     "Isca de frango com requeijao",
+    "Isca de lombo Shop Suey (pimentao, brocolis e cenoura)",
     "Iscas de carne com tomate e cebola",
     "Iscas de frango ao molho de queijo",
     "Iscas de frango com bacon e requeijao",
@@ -460,7 +461,6 @@ const LISTAS_ANTIGAS = {
       "Iscas de frango empanada",
       "Iscas de pernil a milanesa",
       "Iscas de pernil com shoyu e pimentoes",
-      "Isca de Lombo Shop Suey (Pimentão, Brócolis e Cenoura)",-
       "Lagarto ao molho",
       "Linguica de pernil acebolada",
       "Linguica fininha frita",
@@ -572,10 +572,194 @@ const LISTAS_ANTIGAS = {
       "Torta de legumes",
       "Vagem com cenoura"
     ]
+  },
+  // versão 3: listas com a "Abobrinha ao molho branco" (antes de incluir "Isca de lombo Shop Suey")
+  3: {
+    carnes: [
+      "Alcatra ao molho madeira",
+      "Almondegas ao molho",
+      "Almondegas ao molho de tomate",
+      "Almondegas suinas ao molho barbecue",
+      "Bife acebolado (+ R$ 1,00)",
+      "Bife bovino a milanesa (+ R$ 3,00)",
+      "Bife bovino a parmegiana (+ R$ 4,00)",
+      "Bife de contra file (+ R$ 7,00)",
+      "Bife de pernil acebolado",
+      "Bisteca suina acebolada",
+      "Bolo de carne moida a parmegiana",
+      "Calabresa a portuguesa (calabresa, cebola, palmito, milho e azeitona)",
+      "Calabresa acebolada",
+      "Carne ao molho",
+      "Carne assada fatiada ao molho",
+      "Carne de panela",
+      "Carne de panela com batata",
+      "Carne fatiada ao molho madeira",
+      "Carne moida com azeitonas",
+      "Carne moida com batata",
+      "Carne moida com cenoura",
+      "Carne moida com cenoura e azeitona",
+      "Carne moida com cenouras",
+      "Carne moida com legumes",
+      "Carne moida com pimenta chapeu de padre",
+      "Charuto de repolho",
+      "Copa lombo assado",
+      "Costela bovina na panela",
+      "Costelinha assada com barbecue",
+      "Costelinha suina assada",
+      "Costelinha suina na panela",
+      "Cupim assado ao molho",
+      "Dobradinha",
+      "Escondidinho de frango (com pure de batatas, frango desfiado e requeijao)",
+      "Estrogonofe de carne",
+      "Estrogonofe de frango",
+      "Estrogonofe de frango com batata palha",
+      "Feijoada da Casa",
+      "File de frango a milanesa",
+      "File de frango a parmegiana",
+      "File de frango acebolado",
+      "File de frango ao molho branco de palmito",
+      "File de frango ao molho de queijo",
+      "File de frango ao pizzaiolo (com tomate, oregano e mussarela)",
+      "File de frango com creme de milho",
+      "File de frango grelhado",
+      "File de peixe a milanesa",
+      "File de peixe assado ao molho pesto",
+      "File mignon suino assado com molho madeira",
+      "Fraldinha assada",
+      "Frango a passarinho",
+      "Frango cremoso",
+      "Frango na panela",
+      "Frango refogado ao molho",
+      "Frango xadrez",
+      "Fricasse de frango",
+      "Fricasse de frango com batata palha",
+      "Galinhada",
+      "Hamburguer a pizzaiolo",
+      "Isca de frango com requeijao",
+      "Iscas de carne com tomate e cebola",
+      "Iscas de frango ao molho de queijo",
+      "Iscas de frango com bacon e requeijao",
+      "Iscas de frango com tomate e cebola",
+      "Iscas de frango crocante",
+      "Iscas de frango empanada",
+      "Iscas de pernil a milanesa",
+      "Iscas de pernil com shoyu e pimentoes",
+      "Lagarto ao molho",
+      "Linguica de pernil acebolada",
+      "Linguica fininha frita",
+      "Linguica recheada com vinagrete e queijo",
+      "Linguica toscana acebolada",
+      "Linguica toscana com vinagrete e requeijao",
+      "Linguica toscana recheada com requeijao e vinagrete",
+      "Lombo ao molho barbecue",
+      "Lombo assado",
+      "Lombo assado ao molho madeira",
+      "Ovo frito",
+      "Panquecas de frango ou carne",
+      "Pernil acebolado com molho barbecue",
+      "Pernil assado",
+      "Pernil na panela",
+      "Picadinho de frango com mostarda e legumes",
+      "Ponta de peito ao molho",
+      "Ponta de peito assada",
+      "Ponta de peito assada ao molho",
+      "Porpeta recheada com queijo",
+      "Quibe assado recheado",
+      "Rocambole de carne recheado",
+      "Sobrecoxa de frango assada",
+      "Sobrecoxa desossada recheada",
+      "Steak de frango a parmegiana",
+      "Surpresinha de frango recheada (com presunto e queijo)",
+      "Tiras de carne com tomate e cebola",
+      "Tirinhas de frango crocante"
+    ],
+    guarnicoes: [
+      "Abobrinha ao molho branco",
+      "Abobrinha com alho frito",
+      "Abobrinha na manteiga com hortela",
+      "Abobrinha no alho",
+      "Abobrinha recheada",
+      "Abobrinha refogada",
+      "Abobrinha refogada com alho",
+      "Acelga refogada",
+      "Acelga refogada com shoyu",
+      "Antepasto de berinjela",
+      "Banana a milanesa",
+      "Banana surpresa (banana enrolada com presunto e mussarela ao molho branco)",
+      "Batata chips",
+      "Batata com cenoura",
+      "Batata com cenoura refogada",
+      "Batata cozida e frita",
+      "Batata cozida na manteiga com bacon",
+      "Batata doce cozida",
+      "Batata doce frita",
+      "Batata frita",
+      "Batata gratinada com bacon",
+      "Batata palha",
+      "Batata rustica (batata cozida, frita e temperada)",
+      "Berinjela a milanesa",
+      "Bolinho de arroz com espinafre",
+      "Bolinho de arroz com legumes",
+      "Brocolis na manteiga",
+      "Cabotia refogada",
+      "Cenoura com Brocolis",
+      "Cenoura refogada",
+      "Cenoura saute",
+      "Chica doida (creme de milho com queijo e bacon)",
+      "Chuchu com molho branco e ricota",
+      "Chuchu com ricota",
+      "Chuchu refogado",
+      "Couve flor a milanesa",
+      "Couve refogada",
+      "Creme de milho",
+      "Croquete de carne",
+      "Escondidinho de salsicha",
+      "Espaguete alho e oleo",
+      "Espaguete ao molho de tomate",
+      "Estrogonofe de berinjela",
+      "Farofa da casa",
+      "Farofa de banana",
+      "Farofa de milho com legumes",
+      "Farofa temperada com carne",
+      "Fettuccine ao molho de calabresa",
+      "Fettuccine com molho de calabresa e tomate",
+      "Iscas de berinjela a milanesa",
+      "Jilo frito",
+      "Legumes a saute",
+      "Macarrao alho e oleo",
+      "Macarrao alho e oleo com bacon",
+      "Macarrao ao molho branco com brocolis",
+      "Macarrao ao molho de tomate",
+      "Macarrao ao sugo",
+      "Macarrao colorido alho e oleo",
+      "Macarrao com molho branco e parmesao",
+      "Macarrao espaguete ao molho de tomate",
+      "Macarrao molho branco",
+      "Macarrao yakissoba de legumes",
+      "Mandioca cozida",
+      "Mandioca frita",
+      "Mix / Seleta de legumes",
+      "Nhoque ao molho",
+      "Ovo frito",
+      "Polenta ao molho",
+      "Polenta ao molho sugo",
+      "Polenta com molho bolonhesa",
+      "Pure de batata",
+      "Pure de cabotia",
+      "Repolho com escarola refogado",
+      "Repolho refogado",
+      "Repolho refogado com tomate",
+      "Rolinho de berinjela com creme de ricota",
+      "Salsicha em molho",
+      "Tempura de legumes",
+      "Torta de frango com requeijao",
+      "Torta de legumes",
+      "Vagem com cenoura"
+    ]
   }
 };
 const NOMES_RENOMEADOS = {"Staek de frango a parmegiana": "Steak de frango a parmegiana", "Bife acebolado": "Bife acebolado (+ R$ 1,00)"};
-const VERSAO_LISTAS = 3;
+const VERSAO_LISTAS = 4;
 
 function migrarIndicesCardapio(dados) {
   if (!dados) return dados;
@@ -640,6 +824,13 @@ document.addEventListener("DOMContentLoaded", () => {
   configurarOpcaoPagamentoConta();
   configurarBuscaCep();
   carregarDadosClienteSalvos();
+
+  // recalcula a taxa quando o cliente mexe no endereço
+  ["cliente-cep", "cliente-rua", "cliente-numero", "cliente-bairro-nome"].forEach((id) => {
+    const campo = document.getElementById(id);
+    if (campo) campo.addEventListener("input", agendarCalculoTaxa);
+  });
+  agendarCalculoTaxa();
   
   document.getElementById("btn-admin").addEventListener("click", abrirAdmin);
   
@@ -697,21 +888,25 @@ function buscarEnderecoPorCep() {
           inputRua.value = dados.logradouro || "";
           if (inputBairro) inputBairro.value = dados.bairro || "";
           if (inputNumero) inputNumero.focus();
+          cidadeUfCep = { cidade: dados.localidade || "", uf: dados.uf || "" };
         } else {
           alert("CEP não encontrado. Digite os dados do endereço manualmente.");
           inputRua.value = "";
           if (inputBairro) inputBairro.value = "";
+          cidadeUfCep = { cidade: "", uf: "" };
         }
+        agendarCalculoTaxa();
       })
       .catch(() => {
         inputRua.value = "";
         if (inputBairro) inputBairro.value = "";
+        agendarCalculoTaxa();
       });
   }
 }
 
-function salvarDadosCliente(nome, cep, rua, numero, complemento, bairro) {
-  const dadosCliente = { nome, cep, rua, numero, complemento, bairro };
+function salvarDadosCliente(nome, cep, rua, numero, complemento, bairro, cidade, uf) {
+  const dadosCliente = { nome, cep, rua, numero, complemento, bairro, cidade: cidade || "", uf: uf || "" };
   localStorage.setItem("castello_dados_cliente", JSON.stringify(dadosCliente));
 }
 
@@ -726,6 +921,7 @@ function carregarDadosClienteSalvos() {
       if (cliente.numero) document.getElementById("cliente-numero").value = cliente.numero;
       if (cliente.complemento) document.getElementById("cliente-complemento").value = cliente.complemento;
       if (cliente.bairro) document.getElementById("cliente-bairro-nome").value = cliente.bairro;
+      cidadeUfCep = { cidade: cliente.cidade || "", uf: cliente.uf || "" };
     } catch (e) {
       console.log("Erro ao carregar dados salvos:", e);
     }
@@ -769,6 +965,7 @@ function alternarExibicaoEndereco() {
     });
   }
   atualizarTotais();
+  agendarCalculoTaxa();
 }
 
 function atualizarInterface() {
@@ -1375,14 +1572,133 @@ function removerItemCarrinho(index) {
   renderizarCarrinho();
 }
 
+// ==========================================================================
+// TAXA DE ENTREGA POR DISTÂNCIA (calculada na Vercel, pelo Google Maps: api/taxa-entrega.js)
+// ==========================================================================
+// CHAVE LIGA/DESLIGA: deixe false até a conta do Google estar configurada na Vercel
+// (arquivo api/taxa-entrega.js + variáveis GOOGLE_MAPS_KEY e RESTAURANTE_ENDERECO).
+// Com false, o app funciona como antes: sem taxa na tela, no WhatsApp ou na comanda.
+// Quando estiver tudo pronto, troque para true.
+const TAXA_ENTREGA_ATIVA = false;
+
+// status: "parado" (retirada ou endereço incompleto) | "calculando" | "ok" | "erro"
+let taxaEntrega = { status: "parado", valor: 0, km: null, chave: "" };
+let cidadeUfCep = { cidade: "", uf: "" };   // vem da busca do CEP (ViaCEP)
+let timerTaxa = null;
+let promessaTaxa = null;
+
+function enderecoParaTaxa() {
+  if (!TAXA_ENTREGA_ATIVA) return null;
+  const select = document.getElementById("cliente-bairro");
+  if (!select || select.value === "Retirada") return null;
+  const valor = (id) => ((document.getElementById(id) && document.getElementById(id).value) || "").trim();
+  const cep = valor("cliente-cep").replace(/\D/g, "");
+  const rua = valor("cliente-rua");
+  const numero = valor("cliente-numero");
+  if (cep.length !== 8 || !rua || !numero || /^buscando/i.test(rua)) return null;
+  let bairro = valor("cliente-bairro-nome");
+  if (/^buscando/i.test(bairro)) bairro = "";
+  return { cep, rua, numero, bairro, cidade: cidadeUfCep.cidade, uf: cidadeUfCep.uf };
+}
+
+function comTempoLimite(promessa, ms) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("tempo esgotado")), ms);
+    promessa.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+
+// espera o cliente parar de digitar para consultar
+function agendarCalculoTaxa() {
+  clearTimeout(timerTaxa);
+  timerTaxa = setTimeout(() => { calcularTaxaEntrega(); }, 700);
+}
+
+function calcularTaxaEntrega() {
+  const endereco = enderecoParaTaxa();
+  if (!endereco) {
+    taxaEntrega = { status: "parado", valor: 0, km: null, chave: "" };
+    atualizarTotais();
+    return Promise.resolve(taxaEntrega);
+  }
+
+  const chave = JSON.stringify(endereco);
+  if (taxaEntrega.chave === chave && (taxaEntrega.status === "ok" || taxaEntrega.status === "erro")) {
+    return Promise.resolve(taxaEntrega);               // já calculado para este endereço
+  }
+  if (taxaEntrega.chave === chave && taxaEntrega.status === "calculando" && promessaTaxa) {
+    return promessaTaxa;                               // já está calculando
+  }
+
+  taxaEntrega = { status: "calculando", valor: 0, km: null, chave };
+  atualizarTotais();
+
+  promessaTaxa = comTempoLimite(
+    fetch("/api/taxa-entrega", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(endereco)
+    }).then((r) => r.json()),
+    10000
+  )
+    .then((dados) => {
+      if (taxaEntrega.chave !== chave) return taxaEntrega;   // o cliente mudou o endereço no meio do cálculo
+      taxaEntrega = (dados && dados.ok)
+        ? { status: "ok", valor: Number(dados.taxa) || 0, km: dados.km, chave }
+        : { status: "erro", valor: 0, km: null, chave };
+    })
+    .catch(() => {
+      if (taxaEntrega.chave === chave) taxaEntrega = { status: "erro", valor: 0, km: null, chave };
+    })
+    .then(() => {
+      atualizarTotais();
+      return taxaEntrega;
+    });
+
+  return promessaTaxa;
+}
+
+// usada ao finalizar: garante que a taxa do endereço FINAL já foi calculada
+function garantirTaxaEntrega() {
+  return calcularTaxaEntrega().then((taxa) => {
+    const atual = enderecoParaTaxa();
+    if (atual && JSON.stringify(atual) !== taxa.chave) return garantirTaxaEntrega();   // endereço mudou: recalcula
+    return taxa;
+  });
+}
+
 function atualizarTotais() {
   const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
-  document.getElementById("txt-subtotal").innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
-  
-  const elTaxa = document.getElementById("txt-taxa");
-  if (elTaxa) elTaxa.parentNode.style.display = "none";
-  
-  document.getElementById("txt-total").innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+  const reais = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+  document.getElementById("txt-subtotal").innerText = reais(subtotal);
+
+  const select = document.getElementById("cliente-bairro");
+  const entrega = TAXA_ENTREGA_ATIVA && !!select && select.value !== "Retirada";
+  const linhaTaxa = document.getElementById("linha-taxa");
+  const rotuloTaxa = document.getElementById("rotulo-taxa");
+  const valorTaxa = document.getElementById("txt-taxa");
+
+  let taxa = 0;
+  let aviso = "";
+  if (linhaTaxa) linhaTaxa.style.display = entrega ? "flex" : "none";
+
+  if (entrega && rotuloTaxa && valorTaxa) {
+    rotuloTaxa.innerText = "Taxa de entrega:";
+    if (taxaEntrega.status === "ok") {
+      taxa = taxaEntrega.valor;
+      rotuloTaxa.innerText = `Taxa de entrega (${String(taxaEntrega.km).replace(".", ",")} km):`;
+      valorTaxa.innerText = taxa > 0 ? reais(taxa) : "Grátis";
+    } else if (taxaEntrega.status === "calculando") {
+      valorTaxa.innerText = "calculando...";
+    } else if (taxaEntrega.status === "erro") {
+      valorTaxa.innerText = "a confirmar";
+      aviso = " + taxa a confirmar";
+    } else {
+      valorTaxa.innerText = "informe CEP e número";
+    }
+  }
+
+  document.getElementById("txt-total").innerText = reais(subtotal + taxa) + aviso;
 }
 
 function trocarPagamento() {
@@ -1466,9 +1782,21 @@ function finalizarPedido() {
   setTimeout(() => { finalizandoPedido = false; }, 8000);
 
   // PEGA O NÚMERO DO PEDIDO (1º do dia = 1, 2º = 2...) E SÓ ENTÃO MONTA E ENVIA
-  proximoNumeroPedido().then((numeroPedido) => {
+  Promise.all([garantirTaxaEntrega(), proximoNumeroPedido()]).then(([taxa, numeroPedido]) => {
 
   const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+
+  // TAXA DE ENTREGA: só para entrega. Se o Google não achou o endereço, o pedido segue com "taxa a confirmar".
+  const taxaOk = !isRetirada && taxa.status === "ok";
+  const taxaValor = taxaOk ? taxa.valor : 0;
+  const taxaAConfirmar = TAXA_ENTREGA_ATIVA && !isRetirada && !taxaOk;
+  const totalFinal = subtotal + taxaValor;
+  const kmTexto = taxaOk ? String(taxa.km).replace(".", ",") : "";
+  const reais = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+  // campos da taxa só são gravados quando a taxa de entrega está ligada
+  const camposTaxa = TAXA_ENTREGA_ATIVA
+    ? { subtotal: subtotal, taxaEntrega: taxaValor, distanciaKm: taxaOk ? taxa.km : null, taxaAConfirmar: taxaAConfirmar }
+    : {};
 
   // 1. MONTA O OBJETO DO PEDIDO PARA O RELATÓRIO E IMPRESSÃO
   const novoPedido = {
@@ -1482,7 +1810,8 @@ function finalizarPedido() {
     horarioDesejado: horarioDesejado,
     pagamento: pagamento + (campoExtra ? ` (${campoExtra})` : ""),
     trocoPara: pagamento === "Dinheiro" ? lerValorEmReais(campoExtra) : null, // valor que o cliente vai entregar (ex.: 50)
-    total: subtotal,
+    ...camposTaxa,
+    total: totalFinal,
     impresso: false,
     itensDetalhados: carrinho.map(item => {
       let det = item.nome;
@@ -1500,7 +1829,7 @@ function finalizarPedido() {
 
   // 2. SALVA OS DADOS DO CLIENTE LOCALMENTE NO APARELHO DELE
   if (!isRetirada) {
-    salvarDadosCliente(nome, cep, rua, numero, complemento, bairroNome);
+    salvarDadosCliente(nome, cep, rua, numero, complemento, bairroNome, cidadeUfCep.cidade, cidadeUfCep.uf);
   } else {
     salvarDadosCliente(nome, "", "", "", "", "");
   }
@@ -1528,7 +1857,13 @@ function finalizarPedido() {
   msg += `*ITENS DO PEDIDO:*\n${textoItens}`;
   msg += `*Tipo de Pedido:* ${entregaTexto}\n`;
   msg += `*Horário Desejado:* *${horarioDesejado}* (Prazo est.: 30-40 min)\n`;
-  msg += `*TOTAL DO PEDIDO:* *R$ ${subtotal.toFixed(2).replace('.', ',')}*\n\n`;
+  if (TAXA_ENTREGA_ATIVA && !isRetirada) {
+    msg += `*Subtotal:* ${reais(subtotal)}\n`;
+    msg += taxaOk
+      ? `*Taxa de entrega (${kmTexto} km):* ${taxaValor > 0 ? reais(taxaValor) : "Grátis"}\n`
+      : `*Taxa de entrega:* a confirmar\n`;
+  }
+  msg += `*TOTAL DO PEDIDO:* *${reais(totalFinal)}*${taxaAConfirmar ? " (+ taxa de entrega a confirmar)" : ""}\n\n`;
   msg += `*DADOS DO CLIENTE:*\n`;
   msg += `*Nome:* ${nome}\n`;
   
@@ -1994,7 +2329,7 @@ function carregarRelatorioVendas() {
             <span style="background:#28a745; color:white; padding: 3px 8px; border-radius:4px; font-weight:bold;">${formatarReais(p.total)}</span>
           </div>
           <small style="display:block; color:#444; font-size: 0.85rem; margin-bottom: 4px;">• ${itensStr}</small>
-          <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${esc(p.tipo)} | 💳 ${esc(p.pagamento)} | 🕒 Entregar às: <strong>${esc(p.horarioDesejado)}</strong></small>
+          <small style="display:block; color:#666; margin-bottom: 8px;">🛵 ${esc(p.tipo)}${textoTaxaPedido(p)} | 💳 ${esc(p.pagamento)} | 🕒 Entregar às: <strong>${esc(p.horarioDesejado)}</strong></small>
           ${p.enderecoCompleto ? `<small style="display:block; color:#666; margin-bottom: 8px;">📍 ${esc(p.enderecoCompleto)}</small>` : ''}
           ${p.reimpressoes ? `<small style="display:block; color:#b45309; margin-bottom: 6px;">🔁 Reimpresso ${esc(p.reimpressoes)}x${p.ultimaReimpressaoEm ? " (última às " + esc(p.ultimaReimpressaoEm) + ")" : ""}</small>` : ''}
           <div style="text-align: right; margin-top: 5px;">
@@ -2057,6 +2392,30 @@ function blocoPagamentoHtml(p) {
   return h;
 }
 
+// Subtotal e taxa de entrega na comanda (só pedidos novos, que têm o campo "subtotal")
+function blocoTaxaHtml(p) {
+  if (!/entrega/i.test(String(p.tipo || "")) || (p.subtotal === undefined && !p.taxaAConfirmar)) return "";
+  const num = (v) => (Number(v) || 0).toFixed(2).replace(".", ",");
+  const linha = (a, b) => `<div style="display:flex; justify-content:space-between;"><span>${a}</span><span>${b}</span></div>`;
+  let h = linha("Subtotal", num(p.subtotal));
+  if (p.taxaAConfirmar) {
+    h += `<p style="font-size: 12pt;"><strong>TAXA DE ENTREGA A CONFIRMAR</strong></p>`;
+  } else {
+    const km = (p.distanciaKm !== undefined && p.distanciaKm !== null) ? ` (${String(p.distanciaKm).replace(".", ",")} km)` : "";
+    h += linha(`Taxa de entrega${km}`, Number(p.taxaEntrega) > 0 ? num(p.taxaEntrega) : "Grátis");
+  }
+  return h;
+}
+
+// Texto curto da taxa para a lista de pedidos do painel
+function textoTaxaPedido(p) {
+  if (p.taxaAConfirmar) return " (taxa a confirmar)";
+  if (p.distanciaKm !== undefined && p.distanciaKm !== null) {
+    return ` (${String(p.distanciaKm).replace(".", ",")} km${Number(p.taxaEntrega) > 0 ? " · taxa R$ " + Number(p.taxaEntrega).toFixed(2).replace(".", ",") : " · sem taxa"})`;
+  }
+  return "";
+}
+
 function montarComandaHtml(p, segundaVia) {
   const linha = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
 
@@ -2087,6 +2446,7 @@ function montarComandaHtml(p, segundaVia) {
 
   html += `
       ${linha}
+      ${blocoTaxaHtml(p)}
       ${blocoPagamentoHtml(p)}
       ${linha}
     </div>
