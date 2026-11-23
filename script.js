@@ -459,6 +459,7 @@ const LISTAS_ANTIGAS = {
       "Iscas de frango empanada",
       "Iscas de pernil a milanesa",
       "Iscas de pernil com shoyu e pimentoes",
+      "Isca de Lombo Shop Suey (Pimentão, Brócolis e Cenoura)",-
       "Lagarto ao molho",
       "Linguica de pernil acebolada",
       "Linguica fininha frita",
