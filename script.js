@@ -2416,6 +2416,35 @@ function textoTaxaPedido(p) {
   return "";
 }
 
+// Espaço para o dono anotar à mão no fim da comanda: 4 linhas pontilhadas (cerca de 3 cm).
+// Para mais ou menos espaço, mude o número de linhas ou a altura (8mm).
+const LINHAS_ANOTACAO = Array.from({ length: 4 }, () =>
+  `<div style="height: 8mm; border-bottom: 1px dotted #000;"></div>`).join("");
+
+// Quebra um item do pedido em linhas, uma embaixo da outra, nesta ordem:
+// arroz, feijão, cada carne, cada acompanhamento, salada, adicionais e observação.
+function linhasDoItem(texto) {
+  const partes = String(texto ?? "").split(" | ");
+  const nome = partes[0];
+  // separa "A, B (x, y), C" respeitando as vírgulas dentro de parênteses
+  const dividir = (t) => String(t).split(/,\s*(?![^()]*\))/).map((s) => s.trim()).filter(Boolean);
+
+  const carnes = [], acomp = [], extras = [], semRotulo = [];
+  partes.slice(1).forEach((seg) => {
+    if (seg.startsWith("Carnes: ")) carnes.push(...dividir(seg.slice(8)));
+    else if (seg.startsWith("Acomp: ")) acomp.push(...dividir(seg.slice(7)));
+    else if (seg.startsWith("Salada: ")) extras.push(seg);
+    else if (seg.startsWith("Adicionais: ")) dividir(seg.slice(12)).forEach((a) => extras.push("+ " + a));
+    else if (seg.startsWith("Obs: ")) extras.push("OBS: " + seg.slice(5));
+    else semRotulo.push(seg);
+  });
+
+  // no pedido o feijão vem antes do arroz; na comanda o arroz sai primeiro
+  const [feijao, base, ...outros] = semRotulo;
+  const linhas = [base, feijao, ...carnes, ...acomp, ...extras, ...outros].filter(Boolean);
+  return { nome, linhas };
+}
+
 function montarComandaHtml(p, segundaVia) {
   const linha = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
 
@@ -2435,12 +2464,12 @@ function montarComandaHtml(p, segundaVia) {
   `;
 
   const itens = p.itensDetalhados || [p.itens];
-  itens.forEach((it) => {
-    // O 1º trecho é o nome do prato; os demais (feijão, carnes, acomp...) vão em linhas separadas
-    const [nomePrato, ...resto] = String(it).split(" | ");
-    html += `<p style="margin-top: 6px;"><strong>- ${esc(nomePrato)}</strong></p>`;
-    resto.forEach((r) => {
-      html += `<p style="margin-left: 10px;">${esc(r)}</p>`;
+  itens.forEach((it, i) => {
+    const { nome, linhas } = linhasDoItem(it);
+    if (i > 0) html += linha;                                   // separa um item do outro
+    html += `<p style="margin-top: 6px;"><strong>- ${esc(nome)}</strong></p>`;
+    linhas.forEach((l) => {
+      html += `<p style="margin-left: 10px; font-size: 11pt;">${esc(l)}</p>`;
     });
   });
 
@@ -2449,6 +2478,8 @@ function montarComandaHtml(p, segundaVia) {
       ${blocoTaxaHtml(p)}
       ${blocoPagamentoHtml(p)}
       ${linha}
+      <p style="margin-top: 8px;"><strong>ANOTAÇÕES:</strong></p>
+      ${LINHAS_ANOTACAO}
     </div>
   `;
   return html;
