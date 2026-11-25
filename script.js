@@ -50,8 +50,8 @@ const BANCO_BEBIDAS_CATEGORIZADO = [
   {
     categoria: "Family / Grande (1,5L e 2L)",
     itens: [
-      { id: 111, nome: "Guaraná Kuat 1,5L", preco: 12.00 },
-      { id: 112, nome: "Guaraná Antarctica 2L", preco: 12.00 },
+      { id: 111, nome: "Guaraná Kuat 2L", preco: 12.00 },
+      { id: 112, nome: "Guaraná Antarctica 1,5L", preco: 12.00 },
       { id: 113, nome: "Coca-Cola 2L", preco: 15.00 },
       { id: 114, nome: "Coca-Cola Zero 2L", preco: 15.00 }
     ]
