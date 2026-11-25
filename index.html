@@ -115,6 +115,10 @@
           <span>Subtotal:</span>
           <strong id="txt-subtotal">R$ 0,00</strong>
         </div>
+        <div class="linha-total" id="linha-taxa" style="display:none;">
+          <span id="rotulo-taxa">Taxa de entrega:</span>
+          <strong id="txt-taxa">informe CEP e número</strong>
+        </div>
         <div class="linha-total total-destaque">
           <span>Total Geral:</span>
           <strong id="txt-total">R$ 0,00</strong>
@@ -254,6 +258,7 @@
       <!-- BOTÕES DE NAVEGAÇÃO DA ABA DO PAINEL -->
       <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button type="button" onclick="mudarAbaAdmin('config')" id="btn-aba-config" style="flex: 1; padding: 10px; border: none; background: #d9381e; color: white; border-radius: 5px; font-weight: bold; cursor: pointer;">⚙️ Cardápio do Dia</button>
+        <button type="button" onclick="mudarAbaAdmin('bebidas')" id="btn-aba-bebidas" style="flex: 1; padding: 10px; border: none; background: #6c757d; color: white; border-radius: 5px; font-weight: bold; cursor: pointer;">🥤 Bebidas</button>
         <button type="button" onclick="mudarAbaAdmin('relatorio')" id="btn-aba-relatorio" style="flex: 1; padding: 10px; border: none; background: #6c757d; color: white; border-radius: 5px; font-weight: bold; cursor: pointer;">📊 Relatório de Vendas</button>
       </div>
 
@@ -299,9 +304,32 @@
           <div id="admin-box-bases" class="grid-checkboxes-admin" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 15px;"></div>
 
           <h3 style="font-size: 1rem; color: #d9381e; margin-bottom: 8px;">Carnes Disponíveis Hoje:</h3>
+
+          <div style="background:#e7f1ff; border-radius:6px; padding:10px; margin-bottom:10px;">
+            <strong>➕ Não tem a carne na lista? Adicione aqui:</strong>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+              <input type="text" id="novo-carne-nome" maxlength="80" placeholder="Nome da carne" onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarItemExtra('carnes');}" style="flex:2 1 190px; padding: 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">
+              <input type="text" id="novo-carne-preco" inputmode="decimal" placeholder="Valor extra R$ (opcional)" onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarItemExtra('carnes');}" style="flex:1 1 130px; padding: 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">
+              <button type="button" onclick="adicionarItemExtra('carnes')" style="background:#0d6efd; color:#fff; border:none; border-radius:4px; padding:9px 14px; font-weight:bold; cursor:pointer;">➕ Adicionar</button>
+            </div>
+            <small style="color:#555;">Ela aparece marcada abaixo. Depois clique em <strong>Salvar Alterações</strong> para os clientes verem. Não use vírgula no nome.</small>
+          </div>
+          <div id="admin-editor-carnes"></div>
+          <div id="admin-extras-carnes" style="margin-bottom:10px;"></div>
           <div id="admin-box-carnes" class="grid-checkboxes-admin" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 15px;"></div>
 
           <h3 style="font-size: 1rem; color: #d9381e; margin-bottom: 8px;">Acompanhamentos Disponíveis Hoje:</h3>
+
+          <div style="background:#e7f1ff; border-radius:6px; padding:10px; margin-bottom:10px;">
+            <strong>➕ Não tem o acompanhamento na lista? Adicione aqui:</strong>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+              <input type="text" id="novo-guarnicao-nome" maxlength="80" placeholder="Nome do acompanhamento" onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarItemExtra('guarnicoes');}" style="flex:2 1 220px; padding: 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">
+              <button type="button" onclick="adicionarItemExtra('guarnicoes')" style="background:#0d6efd; color:#fff; border:none; border-radius:4px; padding:9px 14px; font-weight:bold; cursor:pointer;">➕ Adicionar</button>
+            </div>
+            <small style="color:#555;">Ele aparece marcado abaixo. Depois clique em <strong>Salvar Alterações</strong> para os clientes verem. Não use vírgula no nome.</small>
+          </div>
+          <div id="admin-editor-guarnicoes"></div>
+          <div id="admin-extras-guarnicoes" style="margin-bottom:10px;"></div>
           <div id="admin-box-guarnicoes" class="grid-checkboxes-admin" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 15px;"></div>
 
           <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -309,6 +337,16 @@
             <button type="button" onclick="fecharAdmin()" style="background: #6c757d; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">Fechar</button>
           </div>
         </form>
+      </div>
+
+      <!-- ABA: BEBIDAS (travar a que acabou) -->
+      <div id="aba-admin-bebidas" style="display: none;">
+        <h2 style="color: #0d6efd; margin: 0 0 6px 0;">🥤 Bebidas</h2>
+        <p style="color:#555; margin-bottom:8px;">Acabou uma bebida? Clique no botão dela para <strong>travar</strong>: os clientes veem "ESGOTADO" e não conseguem pedir. Vale <strong>na hora</strong>, sem precisar salvar nada. Quando chegar mais, clique de novo para liberar.</p>
+        <div id="admin-resumo-bebidas" style="font-weight:bold; margin-bottom:8px;"></div>
+        <button type="button" onclick="liberarTodasBebidas()" style="background:#fd7e14; color:#fff; border:none; border-radius:5px; padding:8px 14px; font-weight:bold; cursor:pointer;">↩️ Liberar todas as bebidas</button>
+        <div id="admin-lista-bebidas" style="margin-top:10px;"></div>
+        <div style="margin-top:18px;"><button type="button" onclick="fecharAdmin()" style="background:#6c757d; color:#fff; border:none; padding:12px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold;">Fechar</button></div>
       </div>
 
       <!-- ABA 2: RELATÓRIO DE VENDAS E HISTÓRICO DE PEDIDOS -->

@@ -969,6 +969,7 @@ function alternarExibicaoEndereco() {
 }
 
 function atualizarInterface() {
+  renderizarBebidas();   // mantém as bebidas esgotadas sempre atualizadas
   const sugestaoTexto = cardapioDia.sugestaoChef || CARDAPIO_DEFAULT.sugestaoChef;
   document.getElementById("desc-sugestao").innerText = sugestaoTexto;
   document.getElementById("desc-especial").innerText = (cardapioDia.especialNome ? cardapioDia.especialNome + (cardapioDia.especialDia ? ": " + cardapioDia.especialDia : "") : CARDAPIO_DEFAULT.especialDia);
@@ -1241,13 +1242,18 @@ function renderizarBebidas() {
     `;
 
     grupo.itens.forEach(b => {
+      const esgotada = bebidaEsgotada(b);
       htmlGrupo += `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f9f9f9;">
           <div>
-            <span style="font-size:0.9rem; font-weight:600;">${b.nome}</span><br>
-            <small style="color:#28a745; font-weight:bold;">R$ ${b.preco.toFixed(2).replace('.', ',')}</small>
+            <span style="font-size:0.9rem; font-weight:600;${esgotada ? " color:#999; text-decoration:line-through;" : ""}">${b.nome}</span><br>
+            ${esgotada
+              ? `<small style="color:#dc3545; font-weight:bold;">ESGOTADO</small>`
+              : `<small style="color:#28a745; font-weight:bold;">R$ ${b.preco.toFixed(2).replace('.', ',')}</small>`}
           </div>
-          <button type="button" onclick="adicionarDireto('${b.nome}', ${b.preco})" class="btn-add" style="padding:4px 10px; font-size:0.8rem;">+ Pedir</button>
+          ${esgotada
+            ? `<button type="button" disabled class="btn-add" style="padding:4px 10px; font-size:0.8rem; background:#adb5bd; cursor:not-allowed;">Esgotado</button>`
+            : `<button type="button" onclick="adicionarDireto('${b.nome}', ${b.preco})" class="btn-add" style="padding:4px 10px; font-size:0.8rem;">+ Pedir</button>`}
         </div>
       `;
     });
@@ -1327,7 +1333,7 @@ function abrirModalMontar(idMarmita) {
   const boxCarnes = document.getElementById("box-carnes-dia");
   boxCarnes.innerHTML = "";
   (cardapioDia.carnesAtivas || [0]).forEach(idx => {
-    const nome = BANCO_OPCOES.carnes[idx];
+    const nome = BANCO_OPCOES.carnes[idx] ? esc(itemBase("carnes", BANCO_OPCOES.carnes[idx]).exibicao) : undefined;
     if (nome) {
       if (nome.toLowerCase().includes("panqueca")) {
         boxCarnes.innerHTML += `
@@ -1352,11 +1358,20 @@ function abrirModalMontar(idMarmita) {
       }
     }
   });
+  // carnes criadas pelo dono no painel (só as marcadas como disponíveis hoje)
+  listaExtras("carnes").filter((x) => x.ativo).forEach((x) => {
+    const nome = esc(nomeExibicaoExtra(x));
+    boxCarnes.innerHTML += `
+      <label class="check-item">
+        <input type="checkbox" name="carne-opcao" value="${nome}"> ${nome}
+      </label>
+    `;
+  });
 
   const boxGuarnicoes = document.getElementById("box-guarnicoes-dia");
   boxGuarnicoes.innerHTML = "";
   (cardapioDia.guarnicoesAtivas || [0]).forEach(idx => {
-    const nome = BANCO_OPCOES.guarnicoes[idx];
+    const nome = BANCO_OPCOES.guarnicoes[idx] ? esc(itemBase("guarnicoes", BANCO_OPCOES.guarnicoes[idx]).exibicao) : undefined;
     if (nome) {
       boxGuarnicoes.innerHTML += `
         <label class="check-item">
@@ -1364,6 +1379,15 @@ function abrirModalMontar(idMarmita) {
         </label>
       `;
     }
+  });
+  // acompanhamentos criados pelo dono no painel (só os marcados como disponíveis hoje)
+  listaExtras("guarnicoes").filter((x) => x.ativo).forEach((x) => {
+    const nome = esc(x.nome);
+    boxGuarnicoes.innerHTML += `
+      <label class="check-item">
+        <input type="checkbox" name="guarnicao-opcao" value="${nome}"> ${nome}
+      </label>
+    `;
   });
 
   const boxSalada = document.getElementById("box-salada-dia");
@@ -1389,6 +1413,358 @@ function abrirModalMontar(idMarmita) {
 
   document.getElementById("obs-marmita").value = "";
   document.getElementById("modal-montar").style.display = "flex";
+}
+
+// ==========================================================================
+// CARNES E ACOMPANHAMENTOS CRIADOS PELO DONO (pelo Painel do Dono, sem mexer no código)
+// Ficam guardados no Firebase junto do cardápio do dia, por código (não por posição),
+// então não bagunçam as listas fixas nem o cardápio já salvo.
+//   cardapioDia.extras = { carnes: { id: { nome, preco, ativo } }, guarnicoes: { id: { nome, ativo } } }
+// ==========================================================================
+let extrasRascunho = { carnes: {}, guarnicoes: {} };
+
+// nome sem vírgula nem barra vertical (eles separam os itens na comanda e no WhatsApp)
+function limparNomeExtra(texto) {
+  return String(texto || "")
+    .replace(/\|/g, " ")
+    .replace(/\s*[,;]\s*/g, " - ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+}
+
+function chaveNomeExtra(texto) {
+  return String(texto || "")
+    .replace(/\(\s*\+\s*R\$[^)]*\)/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+// "Nome (+ R$ 3,00)" quando tem valor extra; o preço é somado na marmita pelo próprio nome
+function nomeExibicaoExtra(item) {
+  const preco = Number(item.preco) || 0;
+  return preco > 0 ? `${item.nome} (+ R$ ${preco.toFixed(2).replace(".", ",")})` : item.nome;
+}
+
+function listaExtras(tipo, fonte) {
+  const origem = fonte || cardapioDia.extras || {};
+  return Object.entries(origem[tipo] || {})
+    .map(([id, v]) => ({ id, nome: String((v && v.nome) || ""), preco: Number(v && v.preco) || 0, ativo: !v || v.ativo !== false }))
+    .filter((x) => x.nome)
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+}
+
+// guarda no rascunho quais itens criados estão marcados "disponível hoje"
+function sincronizarExtrasDoPainel() {
+  [["carnes", "adm-carne-extra"], ["guarnicoes", "adm-guarnicao-extra"]].forEach(([tipo, nomeCampo]) => {
+    document.querySelectorAll(`input[name="${nomeCampo}"]`).forEach((caixa) => {
+      if (extrasRascunho[tipo] && extrasRascunho[tipo][caixa.value]) extrasRascunho[tipo][caixa.value].ativo = !!caixa.checked;
+    });
+  });
+}
+
+function renderizarExtrasAdmin(tipo) {
+  const box = document.getElementById(`admin-extras-${tipo}`);
+  if (!box) return;
+  const nomeCampo = tipo === "carnes" ? "adm-carne-extra" : "adm-guarnicao-extra";
+  const itens = listaExtras(tipo, extrasRascunho);
+  box.innerHTML = itens.length
+    ? `<div style="font-weight:bold; color:#198754; margin-bottom:4px;">✅ Adicionados por você (${itens.length}):</div>` +
+      itens.map((i) => `
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <label class="check-item" style="flex:1; margin:0;"><input type="checkbox" name="${nomeCampo}" value="${esc(i.id)}" ${i.ativo ? "checked" : ""}> ${esc(nomeExibicaoExtra(i))}</label>
+          <button type="button" onclick="editarItem('${tipo}', 'extra', '${esc(i.id)}')" title="Editar" style="background:#ffc107; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">✏️</button>
+          <button type="button" onclick="removerItemExtra('${tipo}', '${esc(i.id)}')" title="Apagar da lista" style="background:#dc3545; color:#fff; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">🗑️</button>
+        </div>`).join("")
+    : "";
+}
+
+function adicionarItemExtra(tipo) {
+  const campoNome = document.getElementById(tipo === "carnes" ? "novo-carne-nome" : "novo-guarnicao-nome");
+  const campoPreco = tipo === "carnes" ? document.getElementById("novo-carne-preco") : null;
+  const nome = limparNomeExtra(campoNome.value);
+  if (!nome) {
+    alert("Digite o nome primeiro.");
+    return;
+  }
+
+  let preco = 0;
+  const textoPreco = campoPreco ? String(campoPreco.value || "").trim() : "";
+  if (textoPreco) {
+    const v = lerValorEmReais(textoPreco);
+    if (v === null || v < 0) {
+      alert("Valor extra inválido. Escreva só o valor, por exemplo 3,00 (ou deixe em branco).");
+      return;
+    }
+    preco = Math.round(v * 100) / 100;
+  }
+
+  const chave = chaveNomeExtra(nome);
+  const jaExiste = BANCO_OPCOES[tipo].flatMap((orig) => [orig, itemBase(tipo, orig, ajustesRascunho).exibicao])
+    .concat(listaExtras(tipo, extrasRascunho).map(nomeExibicaoExtra))
+    .some((x) => chaveNomeExtra(x) === chave);
+  if (jaExiste) {
+    alert("Esse item já existe na lista. Procure por ele e marque a caixinha.");
+    return;
+  }
+
+  sincronizarExtrasDoPainel();
+  const id = "x" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  extrasRascunho[tipo][id] = preco > 0 ? { nome, preco, ativo: true } : { nome, ativo: true };
+  campoNome.value = "";
+  if (campoPreco) campoPreco.value = "";
+  renderizarExtrasAdmin(tipo);
+  campoNome.focus();
+}
+
+function removerItemExtra(tipo, id) {
+  const item = extrasRascunho[tipo] && extrasRascunho[tipo][id];
+  if (!item) return;
+  if (!confirm(`Apagar "${item.nome}" da lista? Para ele voltar, será preciso adicionar de novo.`)) return;
+  sincronizarExtrasDoPainel();
+  delete extrasRascunho[tipo][id];
+  if (edicaoAtual && edicaoAtual.origem === "extra" && edicaoAtual.ref === id) {
+    edicaoAtual = null;
+    renderizarEditorAdmin(tipo);
+  }
+  renderizarExtrasAdmin(tipo);
+}
+
+// ==========================================================================
+// EDITAR ITENS (nome e valor extra) - itens criados pelo dono E itens da lista fixa
+// Os ajustes da lista fixa ficam guardados por nome (não por posição), em cardapioDia.ajustes:
+//   { carnes: { "bife_acebolado": { nome, preco } }, guarnicoes: { "...": { nome } } }
+// ==========================================================================
+let ajustesRascunho = { carnes: {}, guarnicoes: {} };
+let edicaoAtual = null;   // { tipo: "carnes"|"guarnicoes", origem: "base"|"extra", ref: posição ou código }
+
+function chaveAjuste(nomeOriginal) {
+  return chaveNomeExtra(nomeOriginal).replace(/ /g, "_");
+}
+
+function textoComPreco(nome, preco) {
+  return preco > 0 ? `${nome} (+ R$ ${preco.toFixed(2).replace(".", ",")})` : nome;
+}
+
+// nome e valor extra de um item da lista fixa, já com o ajuste do dono (se houver)
+function itemBase(tipo, nomeOriginal, fonte) {
+  const m = String(nomeOriginal).match(/\(\s*\+\s*R\$\s*([\d.,]+)\s*\)/);
+  const precoOriginal = m ? (lerValorEmReais(m[1]) || 0) : 0;
+  const nomeSemPreco = String(nomeOriginal).replace(/\s*\(\s*\+\s*R\$[^)]*\)/g, "").trim();
+  const ajustes = fonte || cardapioDia.ajustes || {};
+  const aj = (ajustes[tipo] || {})[chaveAjuste(nomeOriginal)];
+  const nome = aj && aj.nome ? aj.nome : nomeSemPreco;
+  const preco = tipo === "carnes" ? (aj && aj.preco !== undefined && aj.preco !== null ? (Number(aj.preco) || 0) : precoOriginal) : 0;
+  return { nome, preco, editado: !!aj, original: nomeOriginal, exibicao: textoComPreco(nome, preco) };
+}
+
+function renderizarListaBaseAdmin(tipo, usarSalvo) {
+  const box = document.getElementById(tipo === "carnes" ? "admin-box-carnes" : "admin-box-guarnicoes");
+  if (!box) return;
+  const nomeCampo = tipo === "carnes" ? "adm-carne" : "adm-guarnicao";
+  let marcados = new Set(cardapioDia[tipo === "carnes" ? "carnesAtivas" : "guarnicoesAtivas"] || []);
+  if (!usarSalvo) {
+    // mantém as caixinhas que o dono já marcou e ainda não salvou
+    const atuais = Array.from(document.querySelectorAll(`input[name="${nomeCampo}"]`));
+    if (atuais.length) marcados = new Set(atuais.filter((i) => i.checked).map((i) => parseInt(i.value)));
+  }
+  box.innerHTML = BANCO_OPCOES[tipo].map((original, idx) => {
+    const info = itemBase(tipo, original, ajustesRascunho);
+    return `<div style="display:flex; align-items:center; gap:4px;">
+      <label class="check-item" style="flex:1; margin:0;"><input type="checkbox" name="${nomeCampo}" value="${idx}" ${marcados.has(idx) ? "checked" : ""}> ${esc(info.exibicao)}${info.editado ? ' <small style="color:#fd7e14;">(editado)</small>' : ""}</label>
+      <button type="button" onclick="editarItem('${tipo}', 'base', ${idx})" title="Editar este item" style="background:none; border:none; cursor:pointer; font-size:0.95rem;">✏️</button>
+    </div>`;
+  }).join("");
+}
+
+function dadosDoEditor() {
+  const { tipo, origem, ref } = edicaoAtual;
+  if (origem === "base") {
+    const original = BANCO_OPCOES[tipo][ref];
+    if (!original) return null;
+    const info = itemBase(tipo, original, ajustesRascunho);
+    return { titulo: original, nome: info.nome, preco: info.preco, editado: info.editado };
+  }
+  const item = extrasRascunho[tipo] && extrasRascunho[tipo][ref];
+  return item ? { titulo: null, nome: item.nome, preco: Number(item.preco) || 0, editado: false } : null;
+}
+
+function renderizarEditorAdmin(tipo) {
+  const box = document.getElementById(`admin-editor-${tipo}`);
+  if (!box) return;
+  if (!edicaoAtual || edicaoAtual.tipo !== tipo) { box.innerHTML = ""; return; }
+  const d = dadosDoEditor();
+  if (!d) { edicaoAtual = null; box.innerHTML = ""; return; }
+
+  const campo = "padding: 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;";
+  const enter = `onkeydown="if(event.key==='Enter'){event.preventDefault();aplicarEdicao('${tipo}');}"`;
+  const botao = (cor) => `background:${cor}; color:#fff; border:none; border-radius:4px; padding:8px 14px; font-weight:bold; cursor:pointer;`;
+  box.innerHTML = `
+    <div style="background:#fff3cd; border:1px solid #ffda6a; border-radius:6px; padding:10px; margin-bottom:10px;">
+      <strong>✏️ Editando${d.titulo ? ": " + esc(d.titulo) : " (item que você criou)"}</strong>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+        <input type="text" id="editor-nome-${tipo}" maxlength="80" value="${esc(d.nome)}" ${enter} style="flex:2 1 190px; ${campo}">
+        ${tipo === "carnes" ? `<input type="text" id="editor-preco-${tipo}" inputmode="decimal" value="${d.preco > 0 ? d.preco.toFixed(2).replace(".", ",") : ""}" placeholder="Valor extra R$ (opcional)" ${enter} style="flex:1 1 130px; ${campo}">` : ""}
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+        <button type="button" onclick="aplicarEdicao('${tipo}')" style="${botao("#198754")}">✔ Aplicar edição</button>
+        ${d.editado ? `<button type="button" onclick="restaurarItemBase('${tipo}')" style="${botao("#fd7e14")}">↩️ Voltar ao original</button>` : ""}
+        <button type="button" onclick="cancelarEdicao('${tipo}')" style="${botao("#6c757d")}">Cancelar</button>
+      </div>
+      <small style="color:#664d03;">Depois de aplicar, clique em <strong>Salvar Alterações</strong> no fim da tela para os clientes verem.</small>
+    </div>`;
+}
+
+function editarItem(tipo, origem, ref) {
+  sincronizarExtrasDoPainel();
+  edicaoAtual = { tipo, origem, ref };
+  renderizarEditorAdmin(tipo);
+  renderizarEditorAdmin(tipo === "carnes" ? "guarnicoes" : "carnes");
+  const campo = document.getElementById(`editor-nome-${tipo}`);
+  if (campo) {
+    if (campo.scrollIntoView) campo.scrollIntoView({ block: "center" });
+    campo.focus();
+    if (campo.select) campo.select();
+  }
+}
+
+function cancelarEdicao(tipo) {
+  edicaoAtual = null;
+  renderizarEditorAdmin(tipo);
+}
+
+function aplicarEdicao(tipo) {
+  if (!edicaoAtual || edicaoAtual.tipo !== tipo) return;
+  const nome = limparNomeExtra(document.getElementById(`editor-nome-${tipo}`).value);
+  if (!nome) {
+    alert("O nome não pode ficar vazio.");
+    return;
+  }
+
+  let preco = 0;
+  if (tipo === "carnes") {
+    const texto = String(document.getElementById(`editor-preco-${tipo}`).value || "").trim();
+    if (texto) {
+      const v = lerValorEmReais(texto);
+      if (v === null || v < 0) {
+        alert("Valor extra inválido. Escreva só o valor, por exemplo 3,00 (ou deixe em branco).");
+        return;
+      }
+      preco = Math.round(v * 100) / 100;
+    }
+  }
+
+  const { origem, ref } = edicaoAtual;
+  // não pode ficar com o mesmo nome de outro item
+  const chave = chaveNomeExtra(nome);
+  const outros = [];
+  BANCO_OPCOES[tipo].forEach((orig, idx) => {
+    if (origem === "base" && idx === ref) return;
+    outros.push(orig, itemBase(tipo, orig, ajustesRascunho).exibicao);
+  });
+  listaExtras(tipo, extrasRascunho).forEach((x) => {
+    if (origem === "extra" && x.id === ref) return;
+    outros.push(nomeExibicaoExtra(x));
+  });
+  if (outros.some((x) => chaveNomeExtra(x) === chave)) {
+    alert("Já existe outro item com esse nome.");
+    return;
+  }
+
+  sincronizarExtrasDoPainel();
+  if (origem === "base") {
+    const original = BANCO_OPCOES[tipo][ref];
+    const padrao = itemBase(tipo, original, {});   // como é na lista fixa, sem ajustes
+    if (nome === padrao.nome && (tipo !== "carnes" || preco === padrao.preco)) {
+      delete ajustesRascunho[tipo][chaveAjuste(original)];      // igual ao original: não precisa de ajuste
+    } else {
+      ajustesRascunho[tipo][chaveAjuste(original)] = tipo === "carnes" ? { nome, preco } : { nome };
+    }
+  } else {
+    const item = extrasRascunho[tipo][ref];
+    if (!item) return;
+    item.nome = nome;
+    if (tipo === "carnes" && preco > 0) item.preco = preco; else delete item.preco;
+  }
+
+  edicaoAtual = null;
+  renderizarEditorAdmin(tipo);
+  renderizarExtrasAdmin(tipo);
+  renderizarListaBaseAdmin(tipo, false);
+}
+
+function restaurarItemBase(tipo) {
+  if (!edicaoAtual || edicaoAtual.tipo !== tipo || edicaoAtual.origem !== "base") return;
+  delete ajustesRascunho[tipo][chaveAjuste(BANCO_OPCOES[tipo][edicaoAtual.ref])];
+  edicaoAtual = null;
+  renderizarEditorAdmin(tipo);
+  renderizarListaBaseAdmin(tipo, false);
+}
+
+// ==========================================================================
+// BEBIDAS ESGOTADAS: o dono trava a bebida que acabou (vale na hora, sem precisar salvar o cardápio)
+// Fica em cardapioDia.bebidasEsgotadas = { "b101": true, ... }
+// ==========================================================================
+function bebidaEsgotada(b) {
+  return !!(cardapioDia.bebidasEsgotadas && cardapioDia.bebidasEsgotadas["b" + b.id]);
+}
+
+function achaBebidaPorNome(nome) {
+  for (const grupo of BANCO_BEBIDAS_CATEGORIZADO) {
+    const achada = grupo.itens.find((b) => b.nome === nome);
+    if (achada) return achada;
+  }
+  return null;
+}
+
+function renderizarBebidasAdmin() {
+  const box = document.getElementById("admin-lista-bebidas");
+  if (!box) return;
+  const esgotadas = BANCO_BEBIDAS_CATEGORIZADO.reduce((soma, g) => soma + g.itens.filter(bebidaEsgotada).length, 0);
+  const resumo = document.getElementById("admin-resumo-bebidas");
+  if (resumo) resumo.innerHTML = esgotadas ? `🚫 ${esgotadas} bebida${esgotadas > 1 ? "s" : ""} esgotada${esgotadas > 1 ? "s" : ""} agora` : "✅ Todas as bebidas estão disponíveis";
+
+  box.innerHTML = BANCO_BEBIDAS_CATEGORIZADO.map((g) => `
+    <h3 style="font-size:0.95rem; color:#d9381e; margin:14px 0 6px; border-bottom:2px solid #f2f2f2; padding-bottom:4px;">${esc(g.categoria)}</h3>
+    ${g.itens.map((b) => {
+      const e = bebidaEsgotada(b);
+      return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f1f1f1;">
+        <div><strong${e ? ' style="color:#999; text-decoration:line-through;"' : ""}>${esc(b.nome)}</strong> <small style="color:#666;">R$ ${b.preco.toFixed(2).replace(".", ",")}</small></div>
+        <button type="button" onclick="alternarBebidaEsgotada(${b.id})" style="min-width:150px; background:${e ? "#dc3545" : "#198754"}; color:#fff; border:none; border-radius:5px; padding:8px 10px; font-weight:bold; cursor:pointer;">${e ? "🚫 ESGOTADA (liberar)" : "✅ Disponível (travar)"}</button>
+      </div>`;
+    }).join("")}`).join("");
+}
+
+function alternarBebidaEsgotada(id) {
+  const bebida = BANCO_BEBIDAS_CATEGORIZADO.flatMap((g) => g.itens).find((b) => b.id === id);
+  if (!bebida) return;
+  const chave = "b" + id;
+  const estavaEsgotada = bebidaEsgotada(bebida);
+  cardapioDia.bebidasEsgotadas = cardapioDia.bebidasEsgotadas || {};
+  const ref = database.ref(`cardapioDia/bebidasEsgotadas/${chave}`);
+  const pedido = estavaEsgotada ? ref.remove() : ref.set(true);
+  if (estavaEsgotada) delete cardapioDia.bebidasEsgotadas[chave]; else cardapioDia.bebidasEsgotadas[chave] = true;
+  renderizarBebidasAdmin();
+  renderizarBebidas();
+  Promise.resolve(pedido).catch((erro) => {
+    // não conseguiu gravar: desfaz na tela
+    if (estavaEsgotada) cardapioDia.bebidasEsgotadas[chave] = true; else delete cardapioDia.bebidasEsgotadas[chave];
+    renderizarBebidasAdmin();
+    renderizarBebidas();
+    alert("Não foi possível salvar. Confira a internet e tente de novo. (" + erro.message + ")");
+  });
+}
+
+function liberarTodasBebidas() {
+  if (!cardapioDia.bebidasEsgotadas || !Object.keys(cardapioDia.bebidasEsgotadas).length) {
+    alert("Nenhuma bebida está esgotada.");
+    return;
+  }
+  if (!confirm("Liberar TODAS as bebidas para os clientes pedirem?")) return;
+  cardapioDia.bebidasEsgotadas = {};
+  database.ref("cardapioDia/bebidasEsgotadas").remove().catch((erro) => alert("Não foi possível salvar: " + erro.message));
+  renderizarBebidasAdmin();
+  renderizarBebidas();
 }
 
 function alternarModoFeijoada(isFeijoada) {
@@ -1513,6 +1889,12 @@ function confirmarMontagemMarmita() {
 function adicionarDireto(nome, preco) {
   if (cardapioDia.statusLoja !== "Aberto") {
     alert("Loja fechada!");
+    return;
+  }
+
+  const bebida = achaBebidaPorNome(nome);
+  if (bebida && bebidaEsgotada(bebida)) {
+    alert(`${nome} acabou! Escolha outra bebida, por favor.`);
     return;
   }
 
@@ -1725,6 +2107,13 @@ function trocarPagamento() {
 function finalizarPedido() {
   if (carrinho.length === 0) {
     alert("Adicione pelo menos um prato ao carrinho!");
+    return;
+  }
+
+  // bebida que acabou depois de entrar no carrinho
+  const bebidasQueAcabaram = carrinho.filter((i) => !i.detalhes && achaBebidaPorNome(i.nome) && bebidaEsgotada(achaBebidaPorNome(i.nome)));
+  if (bebidasQueAcabaram.length) {
+    alert(`Acabou: ${bebidasQueAcabaram.map((i) => i.nome).join(", ")}. Remova do carrinho ou escolha outra bebida.`);
     return;
   }
 
@@ -2132,19 +2521,22 @@ function abrirAdmin() {
       boxBases.innerHTML += `<label class="check-item"><input type="checkbox" name="adm-base" value="${idx}" ${checked}> ${b}</label>`;
     });
 
-    const boxCarnes = document.getElementById("admin-box-carnes");
-    boxCarnes.innerHTML = "";
-    BANCO_OPCOES.carnes.forEach((c, idx) => {
-      const checked = (cardapioDia.carnesAtivas || []).includes(idx) ? 'checked' : '';
-      boxCarnes.innerHTML += `<label class="check-item"><input type="checkbox" name="adm-carne" value="${idx}" ${checked}> ${c}</label>`;
-    });
+    // ajustes nos itens da lista fixa (nome / valor extra): trabalha numa cópia e só grava em "Salvar Alterações"
+    ajustesRascunho = JSON.parse(JSON.stringify(cardapioDia.ajustes || {}));
+    ajustesRascunho.carnes = ajustesRascunho.carnes || {};
+    ajustesRascunho.guarnicoes = ajustesRascunho.guarnicoes || {};
+    edicaoAtual = null;
+    renderizarListaBaseAdmin("carnes", true);
+    renderizarListaBaseAdmin("guarnicoes", true);
+    renderizarEditorAdmin("carnes");
+    renderizarEditorAdmin("guarnicoes");
 
-    const boxGuarnicoes = document.getElementById("admin-box-guarnicoes");
-    boxGuarnicoes.innerHTML = "";
-    BANCO_OPCOES.guarnicoes.forEach((g, idx) => {
-      const checked = (cardapioDia.guarnicoesAtivas || []).includes(idx) ? 'checked' : '';
-      boxGuarnicoes.innerHTML += `<label class="check-item"><input type="checkbox" name="adm-guarnicao" value="${idx}" ${checked}> ${g}</label>`;
-    });
+    // itens criados pelo dono: trabalha numa cópia e só grava ao clicar em "Salvar Alterações"
+    extrasRascunho = JSON.parse(JSON.stringify(cardapioDia.extras || {}));
+    extrasRascunho.carnes = extrasRascunho.carnes || {};
+    extrasRascunho.guarnicoes = extrasRascunho.guarnicoes || {};
+    renderizarExtrasAdmin("carnes");
+    renderizarExtrasAdmin("guarnicoes");
 
     mudarAbaAdmin('config');
     document.getElementById("modal-admin").style.display = "flex";
@@ -2199,6 +2591,11 @@ function salvarDadosAdmin(event) {
   cardapioDia.carnesAtivas = Array.from(document.querySelectorAll('input[name="adm-carne"]:checked')).map(i => parseInt(i.value));
   cardapioDia.guarnicoesAtivas = Array.from(document.querySelectorAll('input[name="adm-guarnicao"]:checked')).map(i => parseInt(i.value));
 
+  // carnes e acompanhamentos criados pelo dono (o Firebase ignora listas vazias)
+  sincronizarExtrasDoPainel();
+  cardapioDia.extras = extrasRascunho;
+  cardapioDia.ajustes = ajustesRascunho;   // nomes/valores ajustados nos itens da lista fixa
+
   database.ref("cardapioDia").set(cardapioDia)
     .then(() => {
       fecharAdmin();
@@ -2210,23 +2607,18 @@ function salvarDadosAdmin(event) {
 }
 
 function mudarAbaAdmin(aba) {
-  const divConfig = document.getElementById("aba-admin-config");
-  const divRelatorio = document.getElementById("aba-admin-relatorio");
-  const btnConfig = document.getElementById("btn-aba-config");
-  const btnRelatorio = document.getElementById("btn-aba-relatorio");
-
-  if (aba === 'config') {
-    divConfig.style.display = "block";
-    divRelatorio.style.display = "none";
-    btnConfig.style.background = "#d9381e";
-    btnRelatorio.style.background = "#6c757d";
-  } else {
-    divConfig.style.display = "none";
-    divRelatorio.style.display = "block";
-    btnConfig.style.background = "#6c757d";
-    btnRelatorio.style.background = "#28a745";
-    carregarRelatorioVendas();
-  }
+  const abas = {
+    config: ["aba-admin-config", "btn-aba-config", "#d9381e"],
+    bebidas: ["aba-admin-bebidas", "btn-aba-bebidas", "#0d6efd"],
+    relatorio: ["aba-admin-relatorio", "btn-aba-relatorio", "#28a745"]
+  };
+  Object.keys(abas).forEach((nome) => {
+    const [idDiv, idBtn, cor] = abas[nome];
+    document.getElementById(idDiv).style.display = nome === aba ? "block" : "none";
+    document.getElementById(idBtn).style.background = nome === aba ? cor : "#6c757d";
+  });
+  if (aba === "bebidas") renderizarBebidasAdmin();
+  if (aba === "relatorio") carregarRelatorioVendas();
 }
 
 // ==========================================================================
