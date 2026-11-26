@@ -1869,6 +1869,7 @@ function confirmarMontagemMarmita() {
   const itemPronto = {
     nome: isFeijoada ? `${marmitaEmSelecao.nome} (Feijoada Completa)` : marmitaEmSelecao.nome,
     preco: precoFinalMarmita,
+    precoBase: marmitaEmSelecao.preco,   // preço da marmita sem extras (usado no relatório do dia)
     detalhes: {
       feijao: opcaoFeijao,
       base: baseSelec,
@@ -2199,6 +2200,7 @@ function finalizarPedido() {
     horarioDesejado: horarioDesejado,
     pagamento: pagamento + (campoExtra ? ` (${campoExtra})` : ""),
     trocoPara: pagamento === "Dinheiro" ? lerValorEmReais(campoExtra) : null, // valor que o cliente vai entregar (ex.: 50)
+    itensResumo: carrinho.map((i) => ({ nome: i.nome, preco: Number(i.precoBase !== undefined ? i.precoBase : i.preco) || 0 })),
     ...camposTaxa,
     total: totalFinal,
     impresso: false,
@@ -2668,6 +2670,177 @@ function irParaHojeRelatorio() {
   carregarRelatorioVendas();
 }
 
+// ==========================================================================
+// RELATÓRIO DO DIA PARA IMPRIMIR (fim do expediente): vendas, ticket médio, formas de
+// pagamento e quantos saíram de cada item (ex.: "10 x Marmita Mini - R$ 21,00")
+// ==========================================================================
+const DIAS_SEMANA_BR = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+
+function dataBRdoISO(iso) {
+  const [a, m, d] = String(iso).split("-");
+  return `${d}/${m}/${a}`;
+}
+
+function diaSemanaDoISO(iso) {
+  const [a, m, d] = String(iso).split("-").map(Number);
+  return DIAS_SEMANA_BR[new Date(a, m - 1, d).getDay()];
+}
+
+// "Marmitinha Fit: frango com legumes" e "Marmitinha Fit: carne moída" contam juntas
+function rotuloDoItem(nome) {
+  return /^Marmitinha Fit/i.test(String(nome)) ? "Marmitinha Fit" : String(nome);
+}
+
+// preço base de um item de pedido antigo (que não guardou o preço): pelo nome
+function precoBasePorNome(nome) {
+  const n = String(nome);
+  const marmita = MARMITAS_TIPOS.find((m) => n === m.nome || n.startsWith(m.nome + " ("));
+  if (marmita) return marmita.preco;
+  if (/^Marmitinha Fit/i.test(n)) return 17.5;
+  if (/^Combo de (Panquecas|Charuto)/i.test(n)) return 30;
+  const bebida = achaBebidaPorNome(n);
+  return bebida ? bebida.preco : null;
+}
+
+function itensDoPedido(p) {
+  if (Array.isArray(p.itensResumo) && p.itensResumo.length) {
+    return p.itensResumo.map((i) => ({ nome: String(i.nome), preco: Number(i.preco) || 0 }));
+  }
+  const textos = p.itensDetalhados || (p.itens ? [p.itens] : []);
+  return textos.map((t) => {
+    const nome = String(t).split(" | ")[0];
+    return { nome, preco: precoBasePorNome(nome) };
+  });
+}
+
+const NOMES_PAGAMENTO_RELATORIO = {
+  "Pix": "Pix",
+  "Dinheiro": "Dinheiro",
+  "Cartao de Debito": "Cartão de débito",
+  "Cartao de Credito": "Cartão de crédito",
+  "Marcar na Conta": "Na conta (caderneta)"
+};
+const ORDEM_PAGAMENTOS = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito", "Na conta (caderneta)"];
+
+function nomePagamentoRelatorio(texto) {
+  const base = String(texto || "").split(" (")[0].trim() || "Não informado";
+  return NOMES_PAGAMENTO_RELATORIO[base] || base;
+}
+
+function somarNoGrupo(grupo, chave, valor) {
+  grupo[chave] = grupo[chave] || { qtd: 0, total: 0 };
+  grupo[chave].qtd += 1;
+  grupo[chave].total += valor;
+}
+
+// contas do dia (função pura: recebe a lista de pedidos e devolve os totais)
+function resumirDia(pedidos) {
+  const r = { qtd: pedidos.length, total: 0, taxas: 0, pagamentos: {}, tipos: {}, itens: {}, totalItens: 0 };
+  pedidos.forEach((p) => {
+    const total = Number(p.total) || 0;
+    r.total += total;
+    r.taxas += Number(p.taxaEntrega) || 0;
+    somarNoGrupo(r.pagamentos, nomePagamentoRelatorio(p.pagamento), total);
+    somarNoGrupo(r.tipos, /retir/i.test(String(p.tipo || "")) ? "Retirada" : "Entrega", total);
+    itensDoPedido(p).forEach((it) => {
+      const nome = rotuloDoItem(it.nome);
+      const chave = `${nome}|${it.preco === null ? "" : it.preco}`;
+      if (!r.itens[chave]) r.itens[chave] = { nome, preco: it.preco, qtd: 0 };
+      r.itens[chave].qtd += 1;
+      r.totalItens += 1;
+    });
+  });
+  r.ticket = r.qtd ? r.total / r.qtd : 0;
+
+  // as marmitas primeiro (na ordem dos tamanhos), depois o resto do que mais saiu
+  const ordemMarmita = (nome) => {
+    const i = MARMITAS_TIPOS.findIndex((m) => nome === m.nome || nome.startsWith(m.nome + " ("));
+    return i === -1 ? 99 : i;
+  };
+  r.listaItens = Object.values(r.itens).sort((a, b) =>
+    ordemMarmita(a.nome) - ordemMarmita(b.nome) || b.qtd - a.qtd || a.nome.localeCompare(b.nome, "pt-BR"));
+  return r;
+}
+
+// linhas "forma de pagamento: quantidade e valor", com o total dos cartões quando há débito e crédito
+function linhasPagamentoRelatorio(r) {
+  const nomes = ORDEM_PAGAMENTOS.filter((n) => r.pagamentos[n])
+    .concat(Object.keys(r.pagamentos).filter((n) => !ORDEM_PAGAMENTOS.includes(n)));
+  const linhas = [];
+  nomes.forEach((n) => linhas.push({ nome: n, qtd: r.pagamentos[n].qtd, total: r.pagamentos[n].total }));
+  const deb = r.pagamentos["Cartão de débito"], cred = r.pagamentos["Cartão de crédito"];
+  if (deb && cred) {
+    const i = linhas.findIndex((l) => l.nome === "Cartão de crédito");
+    linhas.splice(i + 1, 0, { nome: "CARTÕES (total)", qtd: deb.qtd + cred.qtd, total: deb.total + cred.total, forte: true });
+  }
+  return linhas;
+}
+
+function htmlRelatorioDia(r, iso) {
+  const linha = (a, b, forte) => `<div style="display:flex; justify-content:space-between; gap:6px;${forte ? " font-weight:bold;" : ""}"><span>${esc(a)}</span><span>${esc(b)}</span></div>`;
+  const sep = `<hr style="border: 0; border-top: 1px dashed #000; margin: 6px 0;">`;
+  const titulo = (t) => `<p style="margin-top: 6px;"><strong>${esc(t)}</strong></p>`;
+  const reais = formatarReais;
+
+  let h = `
+    <div style="font-family: monospace; font-size: 10pt; width: 100%; padding: 2px;">
+      <h2 style="text-align:center; font-size: 14pt; margin-bottom: 2px;">ROTISSERIA CASTELLO</h2>
+      <p style="text-align:center; font-size: 12pt;"><strong>RELATÓRIO DO DIA</strong></p>
+      <p style="text-align:center;">${esc(diaSemanaDoISO(iso))}, ${dataBRdoISO(iso)}</p>
+      <p style="text-align:center;">Impresso em ${horaAgora()}</p>
+      ${sep}
+      ${linha("Vendas (pedidos)", r.qtd, true)}
+      ${linha("Total vendido", reais(r.total), true)}
+      ${linha("Ticket médio", reais(r.ticket), true)}
+      ${r.taxas > 0 ? linha("Taxas de entrega (inclusas)", reais(r.taxas)) : ""}
+      ${sep}
+      ${titulo("FORMAS DE PAGAMENTO")}
+      ${linhasPagamentoRelatorio(r).map((l) => linha(`${l.nome} (${l.qtd})`, reais(l.total), l.forte)).join("")}
+      ${sep}
+      ${titulo("ENTREGA x RETIRADA")}
+      ${["Entrega", "Retirada"].filter((n) => r.tipos[n]).map((n) => linha(`${n} (${r.tipos[n].qtd})`, reais(r.tipos[n].total))).join("")}
+      ${sep}
+      ${titulo("O QUE SAIU")}
+      ${r.listaItens.map((it) => linha(`${it.qtd} x ${it.nome}`, it.preco === null ? "" : reais(it.preco))).join("")}
+      <p style="margin-top: 4px;"><strong>Total de itens: ${r.totalItens}</strong></p>
+      ${sep}
+      <p style="margin-top: 8px;"><strong>ANOTAÇÕES:</strong></p>
+      ${LINHAS_ANOTACAO}
+    </div>
+  `;
+  return h;
+}
+
+// versão para a tela do painel (mesmos números do papel)
+function htmlResumoTela(r) {
+  if (!r.qtd) return "";
+  const caixa = (titulo, conteudo) => `<div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:10px;"><strong>${titulo}</strong>${conteudo}</div>`;
+  const linha = (a, b, forte) => `<div style="display:flex; justify-content:space-between; gap:8px; border-bottom:1px solid #f1f1f1; padding:3px 0;${forte ? " font-weight:bold;" : ""}"><span>${esc(a)}</span><span>${esc(b)}</span></div>`;
+  const pagamentos = linhasPagamentoRelatorio(r).map((l) => linha(`${l.nome} (${l.qtd})`, formatarReais(l.total), l.forte)).join("");
+  const itens = r.listaItens.map((it) => linha(`${it.qtd} x ${it.nome}`, it.preco === null ? "" : formatarReais(it.preco))).join("");
+  return `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:10px; margin-bottom:15px; font-size:0.9rem;">
+    ${caixa("💳 Formas de pagamento", pagamentos)}
+    ${caixa(`🍱 O que saiu (${r.totalItens} itens)`, itens)}
+  </div>`;
+}
+
+function imprimirRelatorioDia() {
+  const campoData = document.getElementById("relatorio-data");
+  const iso = (campoData && campoData.value) || dataLocalISO(new Date());
+  const pedidos = Object.values(todosPedidosCache || {});
+  if (!pedidos.length) {
+    alert("Não há pedidos neste dia para imprimir.");
+    return;
+  }
+  const area = document.getElementById("area-impressao-comanda");
+  if (!area) {
+    alert("Área de impressão não encontrada no index.html.");
+    return;
+  }
+  area.innerHTML = htmlRelatorioDia(resumirDia(pedidos), iso);
+  window.print();
+}
+
 // BUSCA SÓ OS PEDIDOS DO DIA ESCOLHIDO (padrão: hoje), EM TEMPO REAL
 function carregarRelatorioVendas() {
   const input = document.getElementById("relatorio-data");
@@ -2737,6 +2910,9 @@ function carregarRelatorioVendas() {
     document.getElementById("dash-faturamento").innerText = formatarReais(totalFaturado);
     document.getElementById("dash-total-pedidos").innerText = qtdPedidos;
     document.getElementById("dash-ticket-medio").innerText = formatarReais(ticketMedio);
+
+    const caixaResumo = document.getElementById("rel-resumo-dia");
+    if (caixaResumo) caixaResumo.innerHTML = htmlResumoTela(resumirDia(lista.map((x) => x.p)));
   });
 }
 
